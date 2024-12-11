@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-
 import 'add_card.dart';
 import 'app_bar.dart';
 import 'car_card.dart';
@@ -60,7 +59,7 @@ class _GarageTabState extends State<GarageTab> {
         title: AppBarContent(),
         actions: [
           IconButton(
-            icon: Icon(Icons.settings, color: Colors.black),
+            icon: Icon(Icons.notifications, color: Colors.black),
             onPressed: () {
               // Add functionality for settings
             },
