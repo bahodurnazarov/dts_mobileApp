@@ -1,90 +1,104 @@
 import 'dart:convert';
+import 'package:DTS/pages/profile/profile_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:search_choices/search_choices.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-class IndividualPage extends StatefulWidget {
+import '../../../config/config.dart';
+
+
+class EnterpreneurRegistrationPage extends StatefulWidget {
   final int registrationType;
 
-  IndividualPage({required this.registrationType});
+
+  EnterpreneurRegistrationPage({required this.registrationType});
 
   @override
-  _IndividualPageState createState() => _IndividualPageState();
+  _EnterpreneurRegistrationPage createState() => _EnterpreneurRegistrationPage();
 }
 
-class _IndividualPageState extends State<IndividualPage> {
+class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController tinController = TextEditingController();
-  final TextEditingController _individualTypeController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController einController = TextEditingController();
+  final TextEditingController addressController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
 
   bool _isNameFieldDisabled = true; // To manage the 'Название' field's editability
   String? _errorMessage; // To display errors if any
 
-  bool _isLoading = false;
-  String? _responseMessage;
+  String? selectedRegion;
+  String? selectedCity;
 
-  String? _selectedRegionID;
-  String? _selectedCityID;
-  String? _selectedActivityStatusID;
 
-  List<Map<String, String>> _regionOptions = [];
-  List<Map<String, String>> _cityOptions = [];
-  List<Map<String, String>> _activityStatusOptions = [];
+  List<Map<String, String>> regions = [];
+  List<Map<String, String>> cities = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/region/?page=0&size=3000&sort=id', 'region');
-    _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/city/?page=0&size=3000&sort=id', 'city');
-    _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/activitystatus/?page=0&size=3000&sort=id', 'activityStatus');
+    _loadDropdownData();
   }
 
-  Future<void> _fetchDropdownOptions(String url, String type) async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('auth_token');
-      if (token == null || token.isEmpty) {
-        throw Exception('Token not found in cache');
-      }
+  Future<void> _loadDropdownData() async {
 
+
+    try {
+      regions = await _fetchDropdownOptions('$apiUrl/region/?page=0&size=3000&sort=id');
+      cities = await _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id');
+      setState(() {});
+    } catch (e) {
+      print('Error loading dropdown data: $e');
+    }
+  }
+
+  Future<List<Map<String, String>>> _fetchDropdownOptions(String url) async {
+    try {
+      final token = await _getAuthToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Authorization token is missing');
+      }
       final response = await http.get(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token',
-          'accept': 'application/json',
+          'Accept': 'application/json',
         },
       );
 
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody)['content'] as List;
-        List<Map<String, String>> options = data
-            .map((item) => {
-          'id': item['id'].toString(),
-          'name': item['name'].toString(),
-        })
-            .toList();
-        setState(() {
-          if (type == 'region') {
-            _regionOptions = options;
-          } else if (type == 'city') {
-            _cityOptions = options;
-          } else if (type == 'activityStatus') {
-            _activityStatusOptions = options;
-          }
-        });
+        return data.map((item) {
+          return {
+            'id': item['id'].toString(),
+            'name': item['name']?.toString() ?? 'N/A',
+          };
+        }).toList();
+      } else if (response.statusCode == 401) {
+        throw Exception('Unauthorized access. Please check your credentials.');
       } else {
-        throw Exception('Failed to load data: ${response.statusCode}');
+        throw Exception('Failed to fetch data. Status code: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching dropdown options: $e');
+      return [];
     }
   }
+
+  Future<String?> _getAuthToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('auth_token');
+    } catch (e) {
+      print('Error retrieving auth token: $e');
+      return null;
+    }
+  }
+
 
 
   Future<void> _fetchNameFromInn(String inn) async {
@@ -107,103 +121,38 @@ class _IndividualPageState extends State<IndividualPage> {
         },
       );
 
+      final decodedResponse = utf8.decode(response.bodyBytes);
+      final data = json.decode(decodedResponse);
+
       if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        print(response.body);
+        // Successful response
         setState(() {
           nameController.text = data['fullName'] ?? "Unknown Name";
-          _isNameFieldDisabled = true;  // Disable the field once the name is fetched
+          _isNameFieldDisabled = true; // Disable the field after fetching
           _errorMessage = null; // Clear any previous errors
         });
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 404) {
+        // INN not found
         setState(() {
-          _errorMessage = "Unauthorized - Invalid credentials.";
-          nameController.text = "Не найдено!";
+          nameController.text = "Не найдено"; // Display "Not Found" in Russian
+          _isNameFieldDisabled = false; // Keep the field editable
+          _errorMessage = null; // Clear errors if any
         });
       } else {
+        // Other error statuses
         setState(() {
-          _errorMessage = "Failed to fetch data. Status code: ${response.statusCode}";
+          _errorMessage =
+          "Failed to fetch data. Status code: ${response.statusCode}";
         });
       }
     } catch (e) {
+      // Handle unexpected errors
       setState(() {
         _errorMessage = "An error occurred: $e";
       });
     }
   }
 
-
-  Future<void> _createIndividual() async {
-    // Basic validation for username
-    if (_usernameController.text.length > 9 || !RegExp(r'^\d{9}$').hasMatch(_usernameController.text)) {
-      setState(() {
-        _responseMessage = 'Имя пользователя должно содержать ровно 9 цифр.';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _responseMessage = null;
-    });
-
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('auth_token');
-
-    final url = Uri.parse('http://10.10.25.239:8088/api/v1/individual/');
-    final headers = {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $token',
-      'Content-Type': 'application/json',
-    };
-    final body = jsonEncode({
-      'tin': tinController.text,
-      'individualType': widget.registrationType.toString(),
-      'individualName': nameController.text,
-      'regionID': _selectedRegionID,
-      'cityID': _selectedCityID,
-      'address': _addressController.text,
-      'activityStatusID': _selectedActivityStatusID,
-      'username': _usernameController.text,
-    });
-
-    try {
-      final response = await http.post(url, headers: headers, body: body);
-      final decodedBody = utf8.decode(response.bodyBytes);
-
-      if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _responseMessage = 'Индивидуум успешно создан!';
-        });
-      } else {
-        final data = jsonDecode(response.body);
-        setState(() {
-          _responseMessage = data['message'];
-        });
-      }
-    } catch (e) {
-      print(e);
-      setState(() {
-        _responseMessage = 'Ошибка: $e';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-
-  @override
-  void dispose() {
-    tinController.dispose();
-    _individualTypeController.dispose();
-    nameController.dispose();
-    _addressController.dispose();
-    _usernameController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -232,27 +181,25 @@ class _IndividualPageState extends State<IndividualPage> {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
               ),
               SizedBox(height: 32),
+
               // Text fields for user input
               _buildInnField('ИНН', tinController, requiredField: true),
               _buildInnTextField('Название', nameController, requiredField: true),
+              _buildNumberField('ЕИН', einController),
+              _buildTextField('Адрес', addressController),
+              _buildNumberField('Номер телефона', usernameController, requiredField: true),
 
-              _buildTextField('Адрес', _addressController),
-              _buildNumberField('Номер телефона', _usernameController, requiredField: true),
-              SizedBox(height: 20),
+              SizedBox(height: 32),
 
-              _buildDropdownWithSearch('Регион', _regionOptions, _selectedRegionID, (newValue) {
+              // Dropdowns for registration
+              _buildDropdownWithSearch('Регион', regions, selectedRegion, (newValue) {
                 setState(() {
-                  _selectedRegionID = newValue;
+                  selectedRegion = newValue;
                 });
               }),
-              _buildDropdownWithSearch('Город', _cityOptions, _selectedCityID, (newValue) {
+              _buildDropdownWithSearch('Страна', cities, selectedCity, (newValue) {
                 setState(() {
-                  _selectedCityID = newValue;
-                });
-              }),
-              _buildDropdownWithSearch('Статус активности', _activityStatusOptions, _selectedActivityStatusID, (newValue) {
-                setState(() {
-                  _selectedActivityStatusID = newValue;
+                  selectedCity = newValue;
                 });
               }),
 
@@ -269,7 +216,7 @@ class _IndividualPageState extends State<IndividualPage> {
                     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
                   onPressed: () {
-                    _createIndividual();
+                    _submitRegistration();
                   },
                   child: Text(
                     'Зарегистрироваться',
@@ -277,28 +224,12 @@ class _IndividualPageState extends State<IndividualPage> {
                   ),
                 ),
               ),
-
-              // Response Message
-              if (_responseMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  child: Text(
-                    _responseMessage!,
-                    style: TextStyle(
-                      color: _responseMessage!.contains('успешно')
-                          ? CupertinoColors.activeGreen
-                          : CupertinoColors.systemRed,
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
             ],
           ),
         ),
       ),
     );
   }
-
 
   Widget _buildInnField(String label, TextEditingController controller, {bool requiredField = false}) {
     return Column(
@@ -367,7 +298,10 @@ class _IndividualPageState extends State<IndividualPage> {
           controller: controller,
           placeholder: 'Введите $label',
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(
+            fontSize: 16,
+            color: controller.text == 'Не найдено' ? Colors.red : Colors.black, // Check if text is 'Не найдено'
+          ),
           readOnly: _isNameFieldDisabled, // Disable editing if the name is fetched
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -379,14 +313,15 @@ class _IndividualPageState extends State<IndividualPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool requiredField = false}) {
+  // TextField widget for user input
+  Widget _buildTextField(String label, TextEditingController controller, {bool requiredField = false, bool isEnabled = true}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
           text: TextSpan(
             text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
             children: requiredField
                 ? [
               TextSpan(
@@ -407,32 +342,22 @@ class _IndividualPageState extends State<IndividualPage> {
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: CupertinoColors.inactiveGray),
           ),
+          enabled: isEnabled, // Enable or disable based on the value passed
         ),
-        // Display a star next to label if the field is required
         SizedBox(height: 6),
       ],
     );
   }
-  String _getRegistrationTypeString() {
-    switch (widget.registrationType) {
-      case 1:
-        return "Физ. лицо";
-      case 2:
-        return "Юр. лицо";
-      case 3:
-        return "ИП";
-      default:
-        return "Не выбран";
-    }
-  }
-  Widget _buildNumberField(String label, TextEditingController controller, {bool requiredField = false}) {
+
+  // Number field widget
+  Widget _buildNumberField(String label, TextEditingController controller, {bool requiredField = false, Function(String)? onChanged}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
           text: TextSpan(
             text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
             children: requiredField
                 ? [
               TextSpan(
@@ -443,28 +368,27 @@ class _IndividualPageState extends State<IndividualPage> {
                 : [],
           ),
         ),
-        //SizedBox(height: 6),
         SizedBox(height: 8),
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
-          keyboardType: TextInputType.number, // Restrict to number input
+          keyboardType: TextInputType.number,
           inputFormatters: [
-            // Optional: Format input to only allow digits
             FilteringTextInputFormatter.digitsOnly,
           ],
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: CupertinoColors.inactiveGray),
           ),
+          onChanged: onChanged,
         ),
-        // Display a star next to label if the field is required
         SizedBox(height: 6),
       ],
     );
   }
+
 
 
   Widget _buildDropdownWithSearch(
@@ -524,9 +448,149 @@ class _IndividualPageState extends State<IndividualPage> {
               borderSide: BorderSide(color: Colors.blueAccent),
             ),
           ),
+          closeButton: TextButton(
+            onPressed: () {
+              // Implement close action
+              Navigator.pop(context); // Close the dropdown
+            },
+            child: Text(
+              "Закрыть", // Russian for "Close"
+              style: TextStyle(color: Colors.blueAccent),
+            ),
+          ),
         ),
       ],
     );
   }
 
+
+
+
+
+
+
+  String _getRegistrationTypeString() {
+    switch (widget.registrationType) {
+      case 1:
+        return "Физ. лицо";
+      case 2:
+        return "Юр. лицо";
+      case 3:
+        return "ИП";
+      default:
+        return "Не выбран";
+    }
+  }
+  // Function to show success alert
+  void _showSuccessAlert() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Успех'),
+        content: Text('Вы успешно зарегистрировались!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Close the dialog
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => ProfilePage()), // Navigate to GarageTab
+                    (route) => false, // Remove all previous routes
+              );
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+  Future<void> _submitRegistration() async {
+    String? _responseMessage;
+    // Check if nameController.text is 'Не найдено' and don't proceed if true
+    if (nameController.text == 'Не найдено') {
+      setState(() {
+        _responseMessage = 'Не удалось найти имя. Пожалуйста, проверьте данные.';
+      });
+      return; // Exit the function early if name is not found
+    }
+
+    // Validate required fields
+    if (nameController.text.isEmpty ||
+        tinController.text.isEmpty ||
+        selectedRegion == null ||
+        selectedCity == null) {
+      // Show error to user that required fields are missing
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: Text('Ошибка'),
+            content: Text('Пожалуйста, заполните все обязательные поля.'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    // Send request to the registration API
+    final registrationData = {
+      "name": nameController.text,
+      "username": usernameController.text,
+      "userType": widget.registrationType.toString(),
+      "tin": tinController.text,
+      "ein": einController.text,
+      "address": addressController.text,
+      "region": selectedRegion,
+      "city": selectedCity,
+    };
+
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+
+    final response = await http.post(
+      Uri.parse('http://10.10.25.239:8088/api/v1/company/'),
+      headers: {
+        'accept': 'application/json',
+        'Content-Type': 'application/json',
+        if (token != null) 'Authorization': 'Bearer $token',
+      },
+      body: json.encode(registrationData),
+    );
+    print(token);
+    final responseData = json.decode(utf8.decode(response.bodyBytes));
+    if (response.statusCode == 201) {
+      // Successfully registered
+      print(responseData);
+      _showSuccessAlert();
+      print(response.body);
+    } else {
+      // Handle error response (e.g., show a message)
+      print(responseData);
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CupertinoAlertDialog(
+            title: Text('Ошибка'),
+            content: Text('Не удалось зарегистрироваться. Попробуйте снова.'),
+            actions: [
+              CupertinoDialogAction(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
 }

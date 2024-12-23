@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../home_page.dart';
-import 'garage_tab.dart';
+import '../../home_page.dart';
+import '../garage_tab.dart';
 
 class AddCarCard extends StatelessWidget {
   final VoidCallback onAddCar;
@@ -159,12 +159,23 @@ class _AddCarPageState extends State<AddCarPage> {
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody)['content'] as List;
-        return data
-            .map((item) => {
-          'id': item['id'].toString(),
-          'name': item['name'].toString(),
-        })
-            .toList();
+
+        // Determine how to map the response based on the URL
+        if (url.contains('transporttype')) {
+          return data
+              .map((item) => {
+            'id': item['id'].toString(),
+            'name': item['type'].toString(), // Use 'type' for transportTypes
+          })
+              .toList();
+        } else {
+          return data
+              .map((item) => {
+            'id': item['id'].toString(),
+            'name': item['name'].toString(), // Default mapping
+          })
+              .toList();
+        }
       } else {
         throw Exception('Failed to load data: ${response.statusCode}');
       }
@@ -173,6 +184,7 @@ class _AddCarPageState extends State<AddCarPage> {
       return [];
     }
   }
+
 
 
   // Submit function

@@ -40,7 +40,7 @@ class _RegisterPageState extends State<RegisterPage> {
     String plainPhoneNumber = converter.convertToPlainPhoneNumber(_usernameController.text.trim());
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/auth/register'),
+        Uri.parse('$authUrl/auth/register'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "name": _nameController.text.trim(),

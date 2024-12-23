@@ -46,7 +46,7 @@ class _LoginPageState extends State<LoginPage> {
     String plainPhoneNumber = converter.convertToPlainPhoneNumber(_usernameController.text.trim());
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/auth/login'),
+        Uri.parse('$authUrl/auth/login'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "username": plainPhoneNumber,

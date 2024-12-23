@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import 'fines_page.dart';
+
 class InfoCard extends StatelessWidget {
   final String title;
   final IconData icon;
@@ -27,7 +29,10 @@ class InfoCard extends StatelessWidget {
         color: Colors.white,
         child: InkWell(
           onTap: () {
-            print('Tapped on $title');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FinesPage()),
+            );
           },
           borderRadius: BorderRadius.circular(12),
           splashColor: Colors.blueAccent.withOpacity(0.2),

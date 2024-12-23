@@ -55,7 +55,7 @@ class _OTPScreenState extends State<OTPScreen> {
     String plainPhoneNumber = converter.convertToPlainPhoneNumber(widget.login);
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/auth/confirm?login=${plainPhoneNumber}&code=${_otpController.text.trim()}'),
+        Uri.parse('$authUrl/auth/confirm?login=${plainPhoneNumber}&code=${_otpController.text.trim()}'),
         headers: {"accept": "*/*"},
       );
 
@@ -277,7 +277,7 @@ class _OTPScreenState extends State<OTPScreen> {
     print(plainPhoneNumber);
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/auth/register'),
+        Uri.parse('$authUrl/auth/register'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "name": widget.username,

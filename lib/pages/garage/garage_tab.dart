@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'add_card.dart';
-import 'app_bar.dart';
-import 'car_card.dart';
-import 'info_card.dart';
+import 'carCard/add_card.dart';
+import 'carCard/app_bar.dart';
+import 'carCard/car_card.dart';
+import 'info/info_card.dart';
 
 class GarageTab extends StatefulWidget {
   @override

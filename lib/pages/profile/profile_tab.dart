@@ -1,13 +1,15 @@
+import 'package:DTS/pages/profile/registerProfile/register_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../auth/login_page.dart';
-import 'individualEntrepreneur_register.dart';
-import 'legalEntity_register.dart';
-import 'individual_register.dart';
-import 'register_type.dart';
-import 'settings_page.dart';  // Add the import for RegistrationPage
+import 'settings/faq_page.dart';
+import 'registerProfile/individualEntrepreneur_register.dart';
+import 'registerProfile/legalEntity_register.dart';
+import 'registerProfile/individual_register.dart';
+import 'settings/settings_page.dart';
+import 'settings/support_page.dart';  // Add the import for RegistrationPage
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -98,17 +100,22 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: CupertinoColors.systemYellow,
                 title: 'Часто задаваемые вопросы',
                 onTap: () {
-                  print('Перейти к ЧЗВ');
-                },
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const FAQPage()),
+                  );                },
               ),
               _buildOptionTile(
                 context,
                 icon: CupertinoIcons.chat_bubble_2_fill,
                 color: CupertinoColors.systemGreen,
                 title: 'Поддержка',
-                onTap: () {
-                  print('Перейти к Поддержке');
-                },
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(builder: (context) => SupportPage()),
+                    );
+                  }
               ),
 
               SizedBox(height: 32),

@@ -56,7 +56,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
     try {
       final response = await http.post(
-        Uri.parse('$apiUrl/auth/restore-password'),
+        Uri.parse('$authUrl/auth/restore-password'),
         headers: {"Content-Type": "application/json"},
         body: json.encode({
           "name": "empty",
@@ -97,7 +97,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       try {
         final response = await http.put(
           Uri.parse(
-              '$apiUrl/auth/confirm-password?login=$phoneNumber&code=$otpCode'),
+              '$authUrl/auth/confirm-password?login=$phoneNumber&code=$otpCode'),
           headers: {"accept": "*/*"},
         );
 

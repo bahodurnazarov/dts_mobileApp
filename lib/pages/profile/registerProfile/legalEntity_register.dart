@@ -63,9 +63,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
       print('Error loading dropdown data: $e');
     }
   }
-  Future<void> _fetchNameFromInn(String inn) async {
-    bool _isNameFieldDisabled = false; // This variable will control whether the field is editable or not
 
+
+
+  Future<void> _fetchNameFromInn(String inn) async {
     try {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('auth_token');
@@ -85,25 +86,32 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         },
       );
 
+      final decodedResponse = utf8.decode(response.bodyBytes);
+      final data = json.decode(decodedResponse);
+
       if (response.statusCode == 200) {
-        final data = json.decode(utf8.decode(response.bodyBytes));
-        //print(response.body);
+        // Successful response
         setState(() {
           nameController.text = data['fullName'] ?? "Unknown Name";
-          _isNameFieldDisabled = true;  // Disable the field once the name is fetched
+          _isNameFieldDisabled = true; // Disable the field after fetching
           _errorMessage = null; // Clear any previous errors
         });
-      } else if (response.statusCode == 401) {
+      } else if (response.statusCode == 404) {
+        // INN not found
         setState(() {
-          _errorMessage = "Unauthorized - Invalid credentials.";
-          nameController.text = "Не найдено!";
+          nameController.text = "Не найдено"; // Display "Not Found" in Russian
+          _isNameFieldDisabled = false; // Keep the field editable
+          _errorMessage = null; // Clear errors if any
         });
       } else {
+        // Other error statuses
         setState(() {
-          _errorMessage = "Failed to fetch data. Status code: ${response.statusCode}";
+          _errorMessage =
+          "Failed to fetch data. Status code: ${response.statusCode}";
         });
       }
     } catch (e) {
+      // Handle unexpected errors
       setState(() {
         _errorMessage = "An error occurred: $e";
       });
@@ -393,7 +401,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           controller: controller,
           placeholder: 'Введите $label',
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(
+            fontSize: 16,
+            color: controller.text == 'Не найдено' ? Colors.red : Colors.black, // Check if text is 'Не найдено'
+          ),
           readOnly: _isNameFieldDisabled, // Disable editing if the name is fetched
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
@@ -463,10 +474,21 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
               borderSide: BorderSide(color: Colors.blueAccent),
             ),
           ),
+          closeButton: TextButton(
+            onPressed: () {
+              // Implement close action
+              Navigator.pop(context); // Close the dropdown
+            },
+            child: Text(
+              "Закрыть", // Russian for "Close"
+              style: TextStyle(color: Colors.blueAccent),
+            ),
+          ),
         ),
       ],
     );
   }
+
 
 
 
@@ -509,6 +531,18 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
     );
   }
   Future<void> _submitRegistration() async {
+
+    String? _responseMessage;
+    // Check if nameController.text is 'Не найдено' and don't proceed if true
+    if (nameController.text == 'Не найдено') {
+      setState(() {
+        _responseMessage = 'Не удалось найти имя. Пожалуйста, проверьте данные.';
+      });
+      return; // Exit the function early if name is not found
+    }
+
+
+
     // Validate required fields
     if (nameController.text.isEmpty ||
         tinController.text.isEmpty ||
