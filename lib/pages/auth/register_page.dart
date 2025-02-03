@@ -16,7 +16,6 @@ class RegisterPage extends StatefulWidget {
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
-  final TextEditingController _userTypeController = TextEditingController();
 
   bool _isFormValid = false;
 
@@ -25,7 +24,6 @@ class _RegisterPageState extends State<RegisterPage> {
     super.initState();
     _nameController.addListener(_validateForm);
     _usernameController.addListener(_validateForm);
-    _userTypeController.addListener(_validateForm);
   }
 
   void _validateForm() {
@@ -157,8 +155,6 @@ class _RegisterPageState extends State<RegisterPage> {
                           isDigitField: true,
                         ),
                         SizedBox(height: 20),
-                        _buildTextField(_userTypeController, 'Тип пользователя', CupertinoIcons.info),
-                        SizedBox(height: 30),
                         SizedBox(
                           width: double.infinity,
                           child: CupertinoButton(
@@ -168,7 +164,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             padding: EdgeInsets.symmetric(vertical: 16),
                             child: Text(
                               'Зарегистрироваться',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600,
+                                color: _isFormValid ? Colors.white : CupertinoColors.systemGrey,
+                              ),
                             ),
                           ),
                         ),
@@ -264,7 +262,6 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nameController.dispose();
     _usernameController.dispose();
-    _userTypeController.dispose();
     super.dispose();
   }
 }

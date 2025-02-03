@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/config.dart';
 import '../../utils/services.dart';
+import 'chooseTypePage.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,9 +25,24 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
+    _loadSavedCredentials(); // Load saved login details
     _usernameController.addListener(_validateForm);
     _passwordController.addListener(_validateForm);
   }
+
+  Future<void> _loadSavedCredentials() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedUsername = prefs.getString('saved_username');
+    String? savedPassword = prefs.getString('saved_password');
+
+    if (savedUsername != null && savedPassword != null) {
+      setState(() {
+        _usernameController.text = savedUsername;
+        _passwordController.text = savedPassword;
+      });
+    }
+  }
+
 
   void _validateForm() {
     setState(() {
@@ -44,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> loginUser() async {
     PhoneNumberConverter converter = PhoneNumberConverter();
     String plainPhoneNumber = converter.convertToPlainPhoneNumber(_usernameController.text.trim());
+
     try {
       final response = await http.post(
         Uri.parse('$authUrl/auth/login'),
@@ -56,24 +73,32 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        print(responseData);
-        // Save token to cache
+
+        // Save tokens to cache
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('auth_token', responseData['access_token']);
+        await prefs.setString('refresh_token', responseData['refresh_token']);
+
+        // Save username and password
+        await prefs.setString('saved_username', _usernameController.text.trim());
+        await prefs.setString('saved_password', _passwordController.text.trim());
+
 
         Navigator.pushReplacement(
           context,
-          CupertinoPageRoute(builder: (context) => HomePage()),
+          CupertinoPageRoute(builder: (context) => ChooseTypePage()),
         );
+      } else if (response.statusCode == 403) {
+        _showErrorDialog('Пользователь не найден');
       } else {
         final responseData = json.decode(response.body);
-        _showErrorDialog(
-            responseData['message'] ?? 'Invalid username or password.');
+        _showErrorDialog(responseData['message'] ?? 'Invalid username or password.');
       }
     } catch (e) {
       _showErrorDialog('An error occurred: $e');
     }
   }
+
 
 
   void _showErrorDialog(String message) {
@@ -151,6 +176,7 @@ class _LoginPageState extends State<LoginPage> {
                               'Войти',
                               style: TextStyle(
                                 fontSize: 18,
+                                color: _isFormValid ? Colors.white : CupertinoColors.systemGrey,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),

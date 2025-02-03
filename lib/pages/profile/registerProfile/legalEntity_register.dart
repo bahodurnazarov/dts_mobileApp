@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../config/config.dart';
+
 
 class LegalRegistrationPage extends StatefulWidget {
   final int registrationType;
@@ -26,18 +28,24 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
   final TextEditingController latitudeController = TextEditingController();
   final TextEditingController longitudeController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController officeController = TextEditingController();
+  final TextEditingController actualAddressController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
+
 
   bool _isNameFieldDisabled = true; // To manage the 'Название' field's editability
   String? _errorMessage; // To display errors if any
 
-  String? selectedRegion;
+  String? selectedCountry;
   String? selectedCity;
+  String? selectedDistrict;
   String? selectedCompanyType;
   String? selectedActivityStatus;
   String? selectedProperty;
 
-  List<Map<String, String>> regions = [];
+  List<Map<String, String>> countries = [];
   List<Map<String, String>> cities = [];
+  List<Map<String, String>> districtes = [];
   List<Map<String, String>> companyTypes = [];
   List<Map<String, String>> activityStatuses = [];
   List<Map<String, String>> properties = [];
@@ -50,14 +58,14 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
 
   Future<void> _loadDropdownData() async {
 
-    const String baseUrl = 'http://10.10.25.239:8088/api/v1/';
 
     try {
-      regions = await _fetchDropdownOptions('${baseUrl}region/?page=0&size=3000&sort=id');
-      cities = await _fetchDropdownOptions('${baseUrl}city/?page=0&size=3000&sort=id');
-      companyTypes = await _fetchDropdownOptions('${baseUrl}companytype/?page=0&size=3000&sort=id');
-      activityStatuses = await _fetchDropdownOptions('${baseUrl}activitystatus/?page=0&size=3000&sort=id');
-      properties = await _fetchDropdownOptions('${baseUrl}property/');
+      countries = await _fetchDropdownOptions('$apiUrl/country/?page=0&size=3000&sort=id');
+      cities = await _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id');
+      districtes = await _fetchDropdownOptions('$apiUrl/district/?page=0&size=3000&sort=id');
+      companyTypes = await _fetchDropdownOptions('$apiUrl/companytype/?page=0&size=3000&sort=id');
+      activityStatuses = await _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id');
+      properties = await _fetchDropdownOptions('$apiUrl/property/');
       setState(() {});
     } catch (e) {
       print('Error loading dropdown data: $e');
@@ -91,8 +99,12 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
 
       if (response.statusCode == 200) {
         // Successful response
+        print(data);
         setState(() {
           nameController.text = data['fullName'] ?? "Unknown Name";
+          nameController.text = data['fullName'] ?? "Unknown Name";
+          countryController.text = "Таджикистан";
+          einController.text = data['ein'] ?? "Unknown Name";
           _isNameFieldDisabled = true; // Disable the field after fetching
           _errorMessage = null; // Clear any previous errors
         });
@@ -100,6 +112,7 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         // INN not found
         setState(() {
           nameController.text = "Не найдено"; // Display "Not Found" in Russian
+          einController.text = "?"; // Display "Not Found" in Russian
           _isNameFieldDisabled = false; // Keep the field editable
           _errorMessage = null; // Clear errors if any
         });
@@ -124,7 +137,6 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
       if (token == null || token.isEmpty) {
         throw Exception('Authorization token is missing');
       }
-
       final response = await http.get(
         Uri.parse(url),
         headers: {
@@ -186,35 +198,45 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Тип регистрации: ${_getRegistrationTypeString()}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              SizedBox(height: 32),
+              // Text(
+              //   'Тип регистрации: ${_getRegistrationTypeString()}',
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              // ),
+              // SizedBox(height: 32),
 
               // Text fields for user input
               _buildInnField('ИНН', tinController, requiredField: true),
               _buildInnTextField('Название', nameController, requiredField: true),
-              _buildNumberField('ЕИН', einController),
+              _buildInnTextField('ЕИН', einController),
               _buildTextField('КПП', kppController),
               _buildTextField('Адрес', addressController),
+              _buildTextField('Дом/Кв', officeController),
               _buildTextField('Широта', latitudeController),
               _buildTextField('Долгота', longitudeController),
               _buildNumberField('Номер телефона', usernameController, requiredField: true),
 
               SizedBox(height: 32),
 
-              // Dropdowns for registration
-              _buildDropdownWithSearch('Регион', regions, selectedRegion, (newValue) {
-                setState(() {
-                  selectedRegion = newValue;
-                });
-              }),
-              _buildDropdownWithSearch('Страна', cities, selectedCity, (newValue) {
+              _buildInnTextField('Страна', countryController),
+
+              // // Dropdowns for registration
+              // _buildDropdownWithSearch('Страна', countries, selectedCountry, (newValue) {
+              //   setState(() {
+              //     selectedCountry = newValue;
+              //   });
+              // }),
+              _buildDropdownWithSearch('Город', cities, selectedCity, (newValue) {
                 setState(() {
                   selectedCity = newValue;
                 });
               }),
+
+              _buildDropdownWithSearch('Регион', districtes, selectedDistrict, (newValue) {
+                setState(() {
+                  selectedDistrict = newValue;
+                });
+              }),
+
               _buildDropdownWithSearch('Тип компании', companyTypes, selectedCompanyType, (newValue) {
                 setState(() {
                   selectedCompanyType = newValue;
@@ -546,8 +568,9 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
     // Validate required fields
     if (nameController.text.isEmpty ||
         tinController.text.isEmpty ||
-        selectedRegion == null ||
+        selectedCountry == null ||
         selectedCity == null ||
+        selectedDistrict == null ||
         selectedCompanyType == null ||
         selectedActivityStatus == null ||
         selectedProperty == null) {
@@ -574,27 +597,29 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
 
     // Send request to the registration API
     final registrationData = {
-      "name": nameController.text,
-      "username": usernameController.text,
       "userType": widget.registrationType.toString(),
+      "name": nameController.text,
       "tin": tinController.text,
       "ein": einController.text,
       "kpp": kppController.text,
+      "countryID": "59ea4b0f-549f-4070-8fd3-6c7d899ea709",
+      "cityID": selectedCity,
+      "districtID": selectedDistrict,
+      "office": officeController,
       "address": addressController.text,
+      "companyTypeID": selectedCompanyType,
+      "activityStatusID": selectedActivityStatus,
       "latitude": latitudeController.text,
       "longitude": longitudeController.text,
-      "region": selectedRegion,
-      "city": selectedCity,
-      "companyType": selectedCompanyType,
-      "activityStatus": selectedActivityStatus,
-      "property": selectedProperty,
+      "propertyID": selectedProperty,
+      "username": usernameController.text,
     };
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
     final response = await http.post(
-      Uri.parse('http://10.10.25.239:8088/api/v1/company/'),
+      Uri.parse('$apiUrl/company/'),
       headers: {
         'accept': 'application/json',
         'Content-Type': 'application/json',

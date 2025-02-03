@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+import '../../auth/chooseTypePage.dart';
 import 'fines_page.dart';
 
 class InfoCard extends StatelessWidget {
@@ -31,7 +32,7 @@ class InfoCard extends StatelessWidget {
           onTap: () {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => FinesPage()),
+              MaterialPageRoute(builder: (context) => ChooseTypePage()),
             );
           },
           borderRadius: BorderRadius.circular(12),

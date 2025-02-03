@@ -23,6 +23,9 @@ class _IndividualPageState extends State<IndividualPage> {
   final TextEditingController _individualTypeController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _officeController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
+
 
   bool _isNameFieldDisabled = true; // To manage the 'Название' field's editability
   String? _errorMessage; // To display errors if any
@@ -30,19 +33,23 @@ class _IndividualPageState extends State<IndividualPage> {
   bool _isLoading = false;
   String? _responseMessage;
 
-  String? _selectedRegionID;
+  String? _selectedCountryID;
   String? _selectedCityID;
+  String? _selectedDistrictID;
   String? _selectedActivityStatusID;
 
-  List<Map<String, String>> _regionOptions = [];
+
+  List<Map<String, String>> _countryOptions = [];
   List<Map<String, String>> _cityOptions = [];
+  List<Map<String, String>> _districtOptions = [];
   List<Map<String, String>> _activityStatusOptions = [];
 
   @override
   void initState() {
     super.initState();
-    _fetchDropdownOptions('$apiUrl/region/?page=0&size=3000&sort=id', 'region');
+    _fetchDropdownOptions('$apiUrl/country/?page=0&size=3000&sort=id', 'country');
     _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id', 'city');
+    _fetchDropdownOptions('$apiUrl/district/?page=0&size=3000&sort=id', 'district');
     _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id', 'activityStatus');
   }
 
@@ -72,10 +79,12 @@ class _IndividualPageState extends State<IndividualPage> {
         })
             .toList();
         setState(() {
-          if (type == 'region') {
-            _regionOptions = options;
+          if (type == 'country') {
+            _countryOptions = options;
           } else if (type == 'city') {
             _cityOptions = options;
+          } else if (type == 'district') {
+            _districtOptions = options;
           } else if (type == 'activityStatus') {
             _activityStatusOptions = options;
           }
@@ -116,13 +125,14 @@ class _IndividualPageState extends State<IndividualPage> {
         // Successful response
         setState(() {
           nameController.text = data['fullName'] ?? "Unknown Name";
+          countryController.text = "Таджикистан";
           _isNameFieldDisabled = true; // Disable the field after fetching
           _errorMessage = null; // Clear any previous errors
         });
       } else if (response.statusCode == 404) {
         // INN not found
         setState(() {
-          nameController.text = "Не найдено"; // Display "Not Found" in Russian
+          nameController.text = "Не найдено22"; // Display "Not Found" in Russian
           _isNameFieldDisabled = false; // Keep the field editable
           _errorMessage = null; // Clear errors if any
         });
@@ -179,8 +189,10 @@ class _IndividualPageState extends State<IndividualPage> {
       'tin': tinController.text,
       'individualType': widget.registrationType.toString(),
       'individualName': nameController.text,
-      'regionID': _selectedRegionID,
+      'countryID': "59ea4b0f-549f-4070-8fd3-6c7d899ea709",
       'cityID': _selectedCityID,
+      'districtID': _selectedDistrictID,
+      "office": _officeController.text,
       'address': _addressController.text,
       'activityStatusID': _selectedActivityStatusID,
       'username': _usernameController.text,
@@ -192,11 +204,13 @@ class _IndividualPageState extends State<IndividualPage> {
 
       if (response.statusCode == 201) {
         final data = jsonDecode(decodedBody);
+        print(data);
         setState(() {
           _responseMessage = 'Индивидуум успешно создан!';
         });
       } else {
         final data = jsonDecode(decodedBody);
+        print(data);
         setState(() {
           _responseMessage = data['message'];
         });
@@ -247,29 +261,34 @@ class _IndividualPageState extends State<IndividualPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Тип регистрации: ${_getRegistrationTypeString()}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              SizedBox(height: 32),
+              // Text(
+              //   'Тип регистрации: ${_getRegistrationTypeString()}',
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              // ),
+              // SizedBox(height: 32),
               // Text fields for user input
               _buildInnField('ИНН', tinController, requiredField: true),
               _buildInnTextField('ФИО', nameController, requiredField: true),
 
               _buildTextField('Адрес', _addressController),
+              _buildTextField('Дом/Кв', _officeController),
               _buildNumberField('Номер телефона', _usernameController, requiredField: true),
               SizedBox(height: 20),
 
-              _buildDropdownWithSearch('Регион', _regionOptions, _selectedRegionID, (newValue) {
-                setState(() {
-                  _selectedRegionID = newValue;
-                });
-              }),
+
+              _buildInnTextField('Страна', countryController),
               _buildDropdownWithSearch('Город', _cityOptions, _selectedCityID, (newValue) {
                 setState(() {
                   _selectedCityID = newValue;
                 });
               }),
+
+              _buildDropdownWithSearch('Регион', _districtOptions, _selectedDistrictID, (newValue) {
+                setState(() {
+                  _selectedDistrictID = newValue;
+                });
+              }),
+
               _buildDropdownWithSearch('Статус активности', _activityStatusOptions, _selectedActivityStatusID, (newValue) {
                 setState(() {
                   _selectedActivityStatusID = newValue;

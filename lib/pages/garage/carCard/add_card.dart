@@ -1,10 +1,16 @@
+import 'dart:async';
 import 'dart:convert';
 
+import 'package:DTS/config/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:search_choices/search_choices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../config/globals.dart';
+import '../../auth/chooseTypePage.dart';
+import '../../auth/refresh_token.dart';
 import '../../home_page.dart';
 import '../garage_tab.dart';
 
@@ -128,12 +134,12 @@ class _AddCarPageState extends State<AddCarPage> {
   }
 
   Future<void> _loadDropdownData() async {
-    transportViews = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transportview/');
-    transportTypes = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transporttype/');
-    transportBrands = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transportbrand/');
-    transportFuels = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transportfuel/');
-    transportOwnerships = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transportownership/');
-    transportOwnerTypes = await _fetchDropdownOptions('http://10.10.25.239:8088/api/v1/transportownertype/');
+    transportViews = await _fetchDropdownOptions('$apiUrl/transportview/');
+    transportTypes = await _fetchDropdownOptions('$apiUrl/transporttype/');
+    transportBrands = await _fetchDropdownOptions('$apiUrl/transportbrand/?page=0&size=3000&sort=id');
+    transportFuels = await _fetchDropdownOptions('$apiUrl/transportfuel/');
+    transportOwnerships = await _fetchDropdownOptions('$apiUrl/transportownership/');
+    transportOwnerTypes = await _fetchDropdownOptions('$apiUrl/transportownertype/');
     setState(() {});
   }
 
@@ -146,19 +152,34 @@ class _AddCarPageState extends State<AddCarPage> {
       if (token == null || token.isEmpty) {
         throw Exception('Token not found in cache');
       }
-
-      // Make the API request with the token
-      final response = await http.get(
+      // Make the API request with the token and a timeout
+      final response = await http
+          .get(
         Uri.parse(url),
         headers: {
           'Authorization': 'Bearer $token', // Include the token here
           'accept': 'application/json',
         },
+      )
+          .timeout(
+        const Duration(seconds: 10), // Set the timeout duration
+        onTimeout: () {
+          throw TimeoutException('Request to $url timed out');
+        },
       );
 
+      print(globalUserType);
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
-        final data = json.decode(decodedBody)['content'] as List;
+        final Map<String, dynamic> jsonResponse = json.decode(decodedBody);
+
+        // Log the parsed JSON for debugging
+
+        final data = jsonResponse['content'] as List?;
+
+        if (data == null) {
+          throw Exception('No content found in response');
+        }
 
         // Determine how to map the response based on the URL
         if (url.contains('transporttype')) {
@@ -177,8 +198,11 @@ class _AddCarPageState extends State<AddCarPage> {
               .toList();
         }
       } else {
-        throw Exception('Failed to load data: ${response.statusCode}');
+        throw Exception('Failed to load data. Status code: ${response.statusCode}');
       }
+    } on TimeoutException catch (e) {
+      print('Timeout error: $e');
+      return []; // Return an empty list on timeout
     } catch (e) {
       print('Error fetching dropdown options: $e');
       return [];
@@ -186,14 +210,12 @@ class _AddCarPageState extends State<AddCarPage> {
   }
 
 
-
-  // Submit function
   Future<void> _submitCar() async {
     // Retrieve the token from SharedPreferences
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('auth_token');
 
-    final url = Uri.parse('http://10.10.25.239:8088/api/v1/transport/');
+    final url = Uri.parse('$apiUrl/transport/');
     final headers = {
       'accept': 'application/json',
       'Authorization': 'Bearer $token', // Include the token here
@@ -223,13 +245,18 @@ class _AddCarPageState extends State<AddCarPage> {
     try {
       final response = await http.post(url, headers: headers, body: body);
 
+      // Check the HTTP status code
       if (response.statusCode == 201) {
-        // Show success alert
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
+        final transportId = responseData['content']['id'];
+
+        await _addTransportToUser(transportId);
+
         _showSuccessAlert();
       } else {
-        // Error response handling
+        // Handle non-201 responses
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
         print(response.body);
-        final responseData = json.decode(response.body);
         _showErrorAlert(responseData['content']);
       }
     } catch (error) {
@@ -238,6 +265,63 @@ class _AddCarPageState extends State<AddCarPage> {
       _showErrorAlert('Произошла непредвиденная ошибка');
     }
   }
+
+
+  Future<void> _addTransportToUser(String transportId) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('auth_token');
+
+    String baseApiUrl = ''; // Initialize apiUrl with an empty string
+
+    // Set the appropriate API URL based on the userType
+    switch (globalUserType) {
+      case 1:
+        baseApiUrl = '$apiUrl/individual/$globalUserId/transport?transportId=$transportId';
+        break;
+      case 3:
+        baseApiUrl = '$apiUrl/entrepreneur/$globalUserId/transport?transportId=$transportId';
+        break;
+      case 2:
+        baseApiUrl = '$apiUrl/company/$globalUserId/transport?transportId=$transportId';
+        break;
+      case 0:
+      // If globalUserType = 0, navigate to ChooseTypePage
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ChooseTypePage(),
+          ),
+        );
+        return; // Prevent further execution after navigation
+      default:
+        print("Invalid user type");
+        return;
+    }
+    final individualUrl = Uri.parse(baseApiUrl);
+    final headers = {
+      'accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+
+    try {
+      // Send POST request
+      final response = await http.post(individualUrl, headers: headers);
+      final responseData = json.decode(utf8.decode(response.bodyBytes));
+
+      if (response.statusCode == 201) {
+        print("Transport added successfully");
+      } else {
+        // Handle non-201 responses
+        print("Failed to add transport: ${response.body}");
+        _showErrorAlert(responseData['message'] ?? "Error occurred");
+      }
+    } catch (error) {
+      // Handle any errors during the second request
+      print("Error during second request: $error");
+      _showErrorAlert("Произошла непредвиденная ошибка");
+    }
+  }
+
 
   // Function to show success alert
   void _showSuccessAlert() {
@@ -285,8 +369,10 @@ class _AddCarPageState extends State<AddCarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
         title: Text('Добавить машину'),
+        backgroundColor: Colors.white, // Set background color to white
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -301,16 +387,13 @@ class _AddCarPageState extends State<AddCarPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildDropdown(
-                'Тип транспорта',
-                transportTypes,
-                selectedTransportTypeID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportTypeID = newValue;
-                  });
-                },
-              ),
+
+              _buildDropdownWithSearch('Тип транспорта', transportTypes, selectedTransportTypeID, (newValue) {
+                setState(() {
+                  selectedTransportTypeID = newValue;
+                });
+              }),
+
               _buildTextField('VIN Код', vinController),
               _buildTextField('Марка', modelController),
               _buildTextField('Год выпуска', yearController),
@@ -322,56 +405,37 @@ class _AddCarPageState extends State<AddCarPage> {
               _buildTextField('Длина', lengthController),
               _buildTextField('IMEI GPS-трекера', imeiGpsTrackerController),
               _buildTextField('SIM GPS-трекера', simGpsTrackerController),
-              _buildDropdown(
-                'Вид транспорта',
-                transportViews,
-                selectedTransportViewID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportViewID = newValue;
-                  });
-                },
-              ),
-              _buildDropdown(
-                'Бренд транспорта',
-                transportBrands,
-                selectedTransportBrandID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportBrandID = newValue;
-                  });
-                },
-              ),
-              _buildDropdown(
-                'Тип топлива',
-                transportFuels,
-                selectedTransportFuelID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportFuelID = newValue;
-                  });
-                },
-              ),
-              _buildDropdown(
-                'Право собственности',
-                transportOwnerships,
-                selectedTransportOwnershipID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportOwnershipID = newValue;
-                  });
-                },
-              ),
-              _buildDropdown(
-                'Тип владельца',
-                transportOwnerTypes,
-                selectedTransportOwnerTypeID,
-                    (String? newValue) {
-                  setState(() {
-                    selectedTransportOwnerTypeID = newValue;
-                  });
-                },
-              ),
+
+              _buildDropdownWithSearch('Вид транспорта', transportViews, selectedTransportViewID, (newValue) {
+                setState(() {
+                  selectedTransportViewID = newValue;
+                });
+              }),
+
+              _buildDropdownWithSearch('Бренд транспорта', transportBrands, selectedTransportBrandID, (newValue) {
+                setState(() {
+                  selectedTransportBrandID = newValue;
+                });
+              }),
+
+              _buildDropdownWithSearch('Тип топлива', transportFuels, selectedTransportFuelID, (newValue) {
+                setState(() {
+                  selectedTransportFuelID = newValue;
+                });
+              }),
+
+              _buildDropdownWithSearch('Право собственности', transportOwnerships, selectedTransportOwnershipID, (newValue) {
+                setState(() {
+                  selectedTransportOwnershipID = newValue;
+                });
+              }),
+
+              _buildDropdownWithSearch('Тип владельца', transportOwnerTypes, selectedTransportOwnerTypeID, (newValue) {
+                setState(() {
+                  selectedTransportOwnerTypeID = newValue;
+                });
+              }),
+
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: _submitCar,
@@ -395,44 +459,76 @@ class _AddCarPageState extends State<AddCarPage> {
     );
   }
 
-  Widget _buildDropdown(String label, List<Map<String, String>> options,
-      String? selectedValue, Function(String?) onChanged) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        hint: Text(
-          label,
-          style: TextStyle(color: Colors.grey[600]),  // Hint text style
-        ),
-        onChanged: onChanged,
-        items: options.map((item) {
-          return DropdownMenuItem<String>(
-            value: item['id'],
-            child: Text(item['name']!, style: TextStyle(color: Colors.black)),  // Modern text color
-          );
-        }).toList(),
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),  // Rounded corners
-            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),  // Light border
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),  // Rounded corners on focus
-            borderSide: BorderSide(color: Colors.blue, width: 2),  // Focused border color
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),  // Rounded error border
-            borderSide: BorderSide(color: Colors.red, width: 2),  // Error border color
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),  // Rounded error border on focus
-            borderSide: BorderSide(color: Colors.red, width: 2),  // Error border on focus
-          ),
 
+  Widget _buildDropdownWithSearch(
+      String label,
+      List<Map<String, String>> options,
+      String? selectedValue,
+      Function(String?)? onChanged,
+      ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Label
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade800,
+          ),
         ),
-      ),
+        SizedBox(height: 8),
+        // SearchChoices with custom filtering logic
+        SearchChoices.single(
+          items: options.map((option) {
+            return DropdownMenuItem<String>(
+              value: option['id'],
+              child: Text(option['name'] ?? 'N/A'),
+            );
+          }).toList(),
+          value: selectedValue,
+          hint: Text("Выберите $label"), // Russian translation
+          searchHint: Text("Искать $label"), // Russian translation
+          onChanged: onChanged,
+          isExpanded: true,
+          displayClearIcon: false,
+          style: TextStyle(fontSize: 14, color: Colors.black87),
+          menuBackgroundColor: Colors.grey.shade50,
+          icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
+          searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
+            // Custom search function
+            List<int> matchedIndexes = [];
+            for (int i = 0; i < items.length; i++) {
+              final item = items[i].value ?? '';
+              final optionName = options.firstWhere((o) => o['id'] == item)['name'] ?? '';
+              if (optionName.toLowerCase().contains(keyword.toLowerCase())) {
+                matchedIndexes.add(i);
+              }
+            }
+            return matchedIndexes;
+          },
+          searchInputDecoration: InputDecoration(
+            hintText: "Введите для поиска", // Russian translation
+            border: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.blueAccent),
+            ),
+          ),
+          closeButton: TextButton(
+            onPressed: () {
+              // Implement close action
+              Navigator.pop(context); // Close the dropdown
+            },
+            child: Text(
+              "Закрыть", // Russian for "Close"
+              style: TextStyle(color: Colors.blueAccent),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

@@ -26,16 +26,24 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
   final TextEditingController einController = TextEditingController();
   final TextEditingController addressController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
+  final TextEditingController officeController = TextEditingController();
+  final TextEditingController actualAddressController = TextEditingController();
+  final TextEditingController countryController = TextEditingController();
+
 
   bool _isNameFieldDisabled = true; // To manage the 'Название' field's editability
   String? _errorMessage; // To display errors if any
 
-  String? selectedRegion;
+  String? selectedCountry;
   String? selectedCity;
+  String? selectedDistrict;
+  String? selectedActivityStatus;
 
-
-  List<Map<String, String>> regions = [];
+  List<Map<String, String>> counties = [];
   List<Map<String, String>> cities = [];
+  List<Map<String, String>> districts = [];
+  List<Map<String, String>> activityStatuses = [];
+
 
   @override
   void initState() {
@@ -47,8 +55,10 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
 
 
     try {
-      regions = await _fetchDropdownOptions('$apiUrl/region/?page=0&size=3000&sort=id');
+      counties = await _fetchDropdownOptions('$apiUrl/country/?page=0&size=3000&sort=id');
       cities = await _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id');
+      districts = await _fetchDropdownOptions('$apiUrl/district/?page=0&size=3000&sort=id');
+      activityStatuses = await _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id');
       setState(() {});
     } catch (e) {
       print('Error loading dropdown data: $e');
@@ -127,7 +137,9 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
       if (response.statusCode == 200) {
         // Successful response
         setState(() {
-          nameController.text = data['fullName'] ?? "Unknown Name";
+          nameController.text = data['fullName']?.toString() ?? "Unknown Name";
+          countryController.text = "Таджикистан";
+          einController.text = data['ein']?.toString() ?? "Unknown Name";
           _isNameFieldDisabled = true; // Disable the field after fetching
           _errorMessage = null; // Clear any previous errors
         });
@@ -135,6 +147,7 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
         // INN not found
         setState(() {
           nameController.text = "Не найдено"; // Display "Not Found" in Russian
+          einController.text = "?"; // Display "Not Found" in Russian
           _isNameFieldDisabled = false; // Keep the field editable
           _errorMessage = null; // Clear errors if any
         });
@@ -176,33 +189,42 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Тип регистрации: ${_getRegistrationTypeString()}',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              SizedBox(height: 32),
+              // Text(
+              //   'Тип регистрации: ${_getRegistrationTypeString()}',
+              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              // ),
+              // SizedBox(height: 32),
 
               // Text fields for user input
               _buildInnField('ИНН', tinController, requiredField: true),
               _buildInnTextField('Название', nameController, requiredField: true),
-              _buildNumberField('ЕИН', einController),
+              _buildInnTextField('ЕИН', einController),
               _buildTextField('Адрес', addressController),
+              _buildTextField('Дом/Кв', officeController),
+              _buildTextField('Текущий адрес', actualAddressController),
               _buildNumberField('Номер телефона', usernameController, requiredField: true),
 
               SizedBox(height: 32),
 
               // Dropdowns for registration
-              _buildDropdownWithSearch('Регион', regions, selectedRegion, (newValue) {
-                setState(() {
-                  selectedRegion = newValue;
-                });
-              }),
-              _buildDropdownWithSearch('Страна', cities, selectedCity, (newValue) {
+
+              _buildInnTextField('Страна', countryController),
+
+              _buildDropdownWithSearch('Город', cities, selectedCity, (newValue) {
                 setState(() {
                   selectedCity = newValue;
                 });
               }),
-
+              _buildDropdownWithSearch('Регион', districts, selectedDistrict, (newValue) {
+                setState(() {
+                  selectedDistrict = newValue;
+                });
+              }),
+              _buildDropdownWithSearch('Статус', activityStatuses, selectedActivityStatus, (newValue) {
+                setState(() {
+                  selectedActivityStatus = newValue;
+                });
+              }),
               SizedBox(height: 32),
 
               // Submit Button
@@ -517,7 +539,7 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
     // Validate required fields
     if (nameController.text.isEmpty ||
         tinController.text.isEmpty ||
-        selectedRegion == null ||
+        selectedCountry == null ||
         selectedCity == null) {
       // Show error to user that required fields are missing
       showDialog(
@@ -542,21 +564,24 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
 
     // Send request to the registration API
     final registrationData = {
+      "userType": "3",
       "name": nameController.text,
-      "username": usernameController.text,
-      "userType": widget.registrationType.toString(),
       "tin": tinController.text,
       "ein": einController.text,
+      "countryID": "59ea4b0f-549f-4070-8fd3-6c7d899ea709",
+      "cityID": selectedCity,
+      "districtID": selectedDistrict,
+      "office": officeController.text,
       "address": addressController.text,
-      "region": selectedRegion,
-      "city": selectedCity,
+      "activityStatusID": selectedActivityStatus,
+      "actualAddress": actualAddressController.text,
+      "username": usernameController.text,
     };
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-
     final response = await http.post(
-      Uri.parse('http://10.10.25.239:8088/api/v1/company/'),
+      Uri.parse('$apiUrl/entrepreneur/'),
       headers: {
         'accept': 'application/json',
         'Content-Type': 'application/json',
@@ -572,14 +597,25 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
       _showSuccessAlert();
       print(response.body);
     } else {
-      // Handle error response (e.g., show a message)
+      // Handle error response
       print(responseData);
+
+      // Parse the error response if it's in JSON format (optional)
+      Map<String, dynamic> errorData = {};
+      try {
+        errorData = json.decode(utf8.decode(response.bodyBytes));
+      } catch (e) {
+        errorData = {'message': 'Unknown error occurred'};
+      }
+
+      String errorMessage = errorData['message'] ?? 'Не удалось зарегистрироваться. Попробуйте снова.';
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return CupertinoAlertDialog(
             title: Text('Ошибка'),
-            content: Text('Не удалось зарегистрироваться. Попробуйте снова.'),
+            content: Text(errorMessage),
             actions: [
               CupertinoDialogAction(
                 onPressed: () {

@@ -2,14 +2,14 @@ import 'package:DTS/pages/profile/registerProfile/register_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../config/config.dart';
+import '../../config/globals.dart';
+import '../auth/chooseTypePage.dart';
 import '../auth/login_page.dart';
+import 'SwitchAccount.dart';
 import 'settings/faq_page.dart';
-import 'registerProfile/individualEntrepreneur_register.dart';
-import 'registerProfile/legalEntity_register.dart';
-import 'registerProfile/individual_register.dart';
 import 'settings/settings_page.dart';
-import 'settings/support_page.dart';  // Add the import for RegistrationPage
+import 'settings/support_page.dart';
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -17,77 +17,129 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  int? selectedRegistrationType = null; // 1 for individual, 2 for legal entity, 3 for sole proprietor
-
-// Callback function to handle registration type changes
-  void _onRegistrationTypeChanged(int newType) {
-    setState(() {
-      selectedRegistrationType = newType;
-    });
-
-    // Navigate to the appropriate page based on the selected registration type
-    if (selectedRegistrationType == 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => IndividualPage(
-              registrationType: newType
-          ),
-        ),
-      );
-    } else if (selectedRegistrationType == 2 ) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LegalRegistrationPage(
-            registrationType: newType,
-          ),
-        ),
-      );
-    } else if  (selectedRegistrationType == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => EnterpreneurRegistrationPage(
-              registrationType: newType
-          ),
-        ),
-      );
-    }
-  }
-
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        title: const Text(
+          'Профиль',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Use the custom RegistrationTypeSelector widget
-              RegistrationTypeSelector(
-                selectedRegistrationType: selectedRegistrationType,
-                onValueChanged: _onRegistrationTypeChanged, // Pass the callback
-              ),
+              // User Info Card - Modernized
+              GestureDetector(
+                onTap: () {
+                  String Url;
 
-              SizedBox(height: 12),
+                  switch (globalUserType) {
+                    case 1:
+                      Url = '$apiUrl/individual/check/';
+                      break;
+                    case 2:
+                      Url = '$apiUrl/company/check/';
+                      break;
+                    case 3:
+                      Url = '$apiUrl/entrepreneur/check/';
+                      break;
+                    case 0:
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChooseTypePage(),
+                        ),
+                      );
+                      return;
+                    default:
+                      throw Exception("Invalid user type");
+                  }
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => UserTypeHandler(Url, globalUserType),
+                    ),
+                  );
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Colors.black54, Colors.black54],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        CupertinoIcons.person_circle_fill,
+                        size: 60,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              globalIndividualName.isNotEmpty
+                                  ? globalIndividualName
+                                  : 'Выберите тип пользователя',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              globalTIN.isNotEmpty
+                                  ? 'ИНН: $globalTIN'
+                                  : 'ИНН: N/A',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
 
               // Settings Section
-              Text(
-                'Настройки',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-              ),
-              SizedBox(height: 12),
               _buildOptionTile(
                 context,
                 icon: CupertinoIcons.settings,
-                color: CupertinoColors.activeBlue,
+                color: Colors.blue,
                 title: 'Настройки',
                 onTap: () {
-                  // Navigate to Settings Page
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => SettingsPage()),
@@ -97,41 +149,43 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildOptionTile(
                 context,
                 icon: CupertinoIcons.question_circle_fill,
-                color: CupertinoColors.systemYellow,
+                color: Colors.yellow,
                 title: 'Часто задаваемые вопросы',
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) => const FAQPage()),
-                  );                },
+                  );
+                },
               ),
               _buildOptionTile(
                 context,
                 icon: CupertinoIcons.chat_bubble_2_fill,
-                color: CupertinoColors.systemGreen,
+                color: Colors.green,
                 title: 'Поддержка',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      CupertinoPageRoute(builder: (context) => SupportPage()),
-                    );
-                  }
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(builder: (context) => SupportPage()),
+                  );
+                },
               ),
-
-              SizedBox(height: 32),
+              const SizedBox(height: 100),
 
               // Logout Button
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: CupertinoColors.black,
+                    backgroundColor: Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 120, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 120, vertical: 14),
                   ),
                   onPressed: () async {
-                    SharedPreferences prefs = await SharedPreferences.getInstance();
+                    SharedPreferences prefs =
+                    await SharedPreferences.getInstance();
                     await prefs.remove('auth_token');
 
                     Navigator.pushAndRemoveUntil(
@@ -140,13 +194,17 @@ class _ProfilePageState extends State<ProfilePage> {
                           (route) => false,
                     );
                   },
-                  child: Text(
+                  child: const Text(
                     'Выйти',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -154,40 +212,46 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildOptionTile(BuildContext context, {required IconData icon, required Color color, required String title, required VoidCallback onTap}) {
+  Widget _buildOptionTile(BuildContext context,
+      {required IconData icon,
+        required Color color,
+        required String title,
+        required VoidCallback onTap}) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        margin: EdgeInsets.only(bottom: 12),
-        padding: EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: Offset(0, 3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
             Container(
-              padding: EdgeInsets.all(8),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, size: 24, color: color),
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Text(
               title,
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.black),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.black,
+              ),
             ),
-            Spacer(),
-            //Icon(CupertinoIcons.right_chevron, color: CupertinoColors.systemGrey),
           ],
         ),
       ),
