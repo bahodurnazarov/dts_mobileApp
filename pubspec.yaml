@@ -17,6 +17,7 @@ dependencies:
   logger: ^1.0.0
   shared_preferences: ^2.1.0
   cupertino_icons: ^1.0.8
+  mobile_scanner: ^2.0.0 # Check for the latest version on pub.dev
   flutter_map: ^5.0.0
   latlong2: ^0.9.0
   geolocator: ^9.0.0 # Updated to the latest version

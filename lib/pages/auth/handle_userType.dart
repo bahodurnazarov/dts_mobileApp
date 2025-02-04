@@ -90,6 +90,8 @@ class _UserTypeHandlerPageState extends State<UserTypeHandlerPage> {
           }
         }
       } else if (response.statusCode == 401) {
+        await refreshAccessToken(context);
+        return _checkUserType(url);
         _showUnauthorizedError();
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');

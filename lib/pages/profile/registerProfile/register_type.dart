@@ -6,6 +6,7 @@ import 'dart:convert';
 import '../../../config/config.dart';
 import '../../../config/globals.dart';
 import '../../auth/chooseTypePage.dart';
+import '../../auth/refresh_token.dart';
 import '../profile_tab.dart';
 import 'individualEntrepreneur_register.dart';
 import 'individual_register.dart';
@@ -88,7 +89,8 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
           }
         }
       } else if (response.statusCode == 401) {
-        _showUnauthorizedError();
+        await refreshAccessToken(context);
+        return _checkUserType(url);
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');
       }
@@ -148,7 +150,8 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
           throw Exception('Invalid content structure in the response.');
         }
       } else if (response.statusCode == 401) {
-        throw Exception('Unauthorized request. Please check your token.');
+        await refreshAccessToken(context);
+        return _fetchUserInfo(id);
       } else {
         throw Exception('Failed to fetch user info. Status: ${response.statusCode}');
       }

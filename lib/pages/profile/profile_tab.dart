@@ -6,6 +6,7 @@ import '../../config/config.dart';
 import '../../config/globals.dart';
 import '../auth/chooseTypePage.dart';
 import '../auth/login_page.dart';
+import 'QRScanner.dart';
 import 'SwitchAccount.dart';
 import 'settings/faq_page.dart';
 import 'settings/settings_page.dart';
@@ -131,6 +132,55 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 20),
+
+              // put this qr code on the center and translate text to Russian
+              // Add the QR code icon here, after GestureDetector
+              Row(
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => QRCodeScannerPage()),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            CupertinoIcons.qrcode,
+                            size: 40,
+                            color: Colors.black,
+                          ),
+                          const SizedBox(width: 16),
+                          Text(
+                            'Scan QR Code',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
               const SizedBox(height: 20),
 
               // Settings Section

@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/config.dart';
+import '../../auth/refresh_token.dart';
 
 
 class LegalRegistrationPage extends StatefulWidget {
@@ -155,7 +156,8 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           };
         }).toList();
       } else if (response.statusCode == 401) {
-        throw Exception('Unauthorized access. Please check your credentials.');
+        await refreshAccessToken(context);
+        return _fetchDropdownOptions(url);
       } else {
         throw Exception('Failed to fetch data. Status code: ${response.statusCode}');
       }

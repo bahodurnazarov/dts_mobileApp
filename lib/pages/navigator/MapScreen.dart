@@ -120,7 +120,6 @@ class _MapScreenState extends State<NavigatorTab> {
       // Check the response status
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('API Response: $data'); // Debugging print statement
 
         // Make sure the data structure is as expected
         if (data['parks'] != null) {
@@ -182,7 +181,7 @@ class _MapScreenState extends State<NavigatorTab> {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                 subdomains: ['a', 'b', 'c'],
               ),
               // Show polygons (parking area) if showParking is true
@@ -491,16 +490,25 @@ class _MapScreenState extends State<NavigatorTab> {
               // Station Details
               Divider(color: Colors.grey[300]),
               _infoRow(Icons.location_on, "Адрес", station['address']),
+              _infoRow(Icons.bolt, "Мощность", station['connector_capacity']),
+              _infoRow(Icons.attach_money, "Тариф", station['TariffValue']),
+              _infoRow(Icons.access_time, "График работы", station['work_schedule']),
+              _infoRow(Icons.place, "Зона", station['zone_name']),
               Divider(color: Colors.grey[300]),
-              _infoRow(Icons.access_time, "Рабочие часы", station['work_schedule']),
-              Divider(color: Colors.grey[300]),
-              _infoRow(Icons.attach_money, "Тариф", station['TariffValue'] + ' сомони'),
-              Divider(color: Colors.grey[300]),
-              _infoRow(Icons.battery_charging_full, "Доступные зарядки", station['available'].toString()),
-              Divider(color: Colors.grey[300]),
-              _infoRow(Icons.battery_alert, "Занятые зарядки", station['busy'].toString()),
 
               SizedBox(height: 16),
+
+              // Connectors Section
+              Text(
+                "Коннекторы:",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              SizedBox(height: 12),
+              ...station['connectors'].map<Widget>((connector) {
+                return _connectorInfo(connector);
+              }).toList(),
+
+              SizedBox(height: 24),
 
               // Close Button
               Center(
@@ -526,11 +534,38 @@ class _MapScreenState extends State<NavigatorTab> {
     );
   }
 
-  // Utility method to create a row for displaying info
+  Widget _connectorInfo(Map<String, dynamic> connector) {
+    String statusText = connector['status'] == 'Available' ? 'Доступно' : 'На зарядке';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(Icons.electric_bolt, color: Colors.blue, size: 24),
+          SizedBox(width: 10),
+          Text(
+            "Коннектор ${connector['connector_id']}: ",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+            child: Text(
+              "$statusText (${connector['charging_level']}%)",
+              style: TextStyle(
+                fontSize: 16,
+                color: connector['status'] == 'Available' ? Colors.green : Colors.orange,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _infoRow(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,  // Align to top for better wrapping
         children: [
           Icon(icon, color: Colors.blue, size: 24),
           SizedBox(width: 10),
@@ -542,7 +577,7 @@ class _MapScreenState extends State<NavigatorTab> {
             child: Text(
               value,
               style: TextStyle(fontSize: 16),
-              overflow: TextOverflow.ellipsis,
+              softWrap: true,  // Allow text to wrap onto the next line
             ),
           ),
         ],
