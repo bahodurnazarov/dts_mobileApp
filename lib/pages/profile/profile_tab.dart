@@ -144,6 +144,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         context,
                         MaterialPageRoute(builder: (context) => QRCodeScannerPage()),
                       );
+
                     },
                     child: Container(
                       padding: const EdgeInsets.all(16),
