@@ -1,3 +1,4 @@
+import 'package:DTS/pages/auth/accountType.dart';
 import 'package:DTS/pages/home_page.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -70,10 +71,10 @@ class _HomeWrapperState extends State<HomeWrapper> {
 
     // If token is null or empty, navigate to LoginPage
     if (token == null || token!.isEmpty) {
-      return LoginPage();
+      return AccountTypeSelection();
     }
 
     // Otherwise, navigate to HomePage
-    return HomePage();
+    return AccountTypeSelection();
   }
 }
