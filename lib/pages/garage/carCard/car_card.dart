@@ -22,10 +22,11 @@ class CarCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String name = carData['model'];
-    final String carNumber = carData['carNumber'];
-    final String transportType = carData['transportType']['type'];
-    final String carId = carData['id']; // Assuming `id` is part of carData
+    final String name = carData['CarModel'] ?? 'Unknown Model';
+    final String carNumber = carData['LicensePlate'] ?? 'Unknown Number';
+    final String transportType = carData['transportType']?['type'] ?? 'Unknown Type';
+    final String carId = carData['id'] ?? '';
+
 
     // Generate a random index to pick a car image
 
@@ -97,7 +98,7 @@ class CarCard extends StatelessWidget {
                     Text(
                       name,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                         letterSpacing: 1.2,

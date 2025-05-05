@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:DTS/pages/auth/restore_password.dart';
-import 'package:DTS/pages/home_page.dart';
+import 'package:dts/pages/auth/restore_password.dart';
+import 'package:dts/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/config.dart';
 import '../../utils/services.dart';
-import 'chooseTypePage.dart';
+import 'accountType.dart';
+import 'businessPage.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -47,7 +48,7 @@ class _LoginPageState extends State<LoginPage> {
   void _validateForm() {
     setState(() {
       _isFormValid = _usernameController.text.isNotEmpty &&
-          _passwordController.text.length >= 8;
+          _passwordController.text.length >= 6;
     });
   }
 
@@ -86,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
         Navigator.pushReplacement(
           context,
-          CupertinoPageRoute(builder: (context) => ChooseTypePage()),
+          CupertinoPageRoute(builder: (context) => AccountTypeSelection()),
         );
       } else if (response.statusCode == 403) {
         _showErrorDialog('Пользователь не найден');

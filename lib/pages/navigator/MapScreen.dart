@@ -1,3 +1,5 @@
+import 'dart:developer' as LoggingService;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -14,16 +16,19 @@ class _MapScreenState extends State<NavigatorTab> {
   List<dynamic> parkingPlaces = [];
   bool isLoading = false;
   bool hasError = false;
-  bool showStations = false; // Controls whether to show gas stations
-  bool showParking = false; // Controls whether to show parking places
+  bool showStations = false;
+  bool showParking = false;
   final MapController _mapController = MapController();
+  LatLng _currentCenter = LatLng(38.5598, 68.7870);
+  double _currentZoom = 13.0;
 
   Future<void> _fetchGasStations() async {
+    LoggingService.log('Fetching gas stations...');
     if (showStations) {
-      // If stations are already shown, hide them
       setState(() {
         showStations = false;
       });
+      LoggingService.log('Hiding gas stations');
       return;
     }
 
@@ -33,9 +38,11 @@ class _MapScreenState extends State<NavigatorTab> {
     });
 
     try {
+      LoggingService.log('Making API request to getMarkerPower');
       final response = await http.get(Uri.parse('https://api.parking.dc.tj/api/v1/getMarkerPower'));
 
       if (response.statusCode == 200) {
+        LoggingService.log('Successfully fetched gas stations data');
         final data = json.decode(response.body);
         final List<dynamic> stations = data['powers'];
 
@@ -84,7 +91,7 @@ class _MapScreenState extends State<NavigatorTab> {
           }).toList();
 
           isLoading = false;
-          showStations = true; // Show gas stations on the map
+          showStations = true;
         });
       } else {
         setState(() {
@@ -102,7 +109,6 @@ class _MapScreenState extends State<NavigatorTab> {
 
   Future<void> _fetchParkingPlaces() async {
     if (showParking) {
-      // If parking places are already shown, hide them
       setState(() {
         showParking = false;
       });
@@ -117,29 +123,26 @@ class _MapScreenState extends State<NavigatorTab> {
     try {
       final response = await http.get(Uri.parse('https://api.parking.dc.tj/api/v1/getMarkerParking'));
 
-      // Check the response status
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        // Make sure the data structure is as expected
         if (data['parks'] != null) {
           final List<dynamic> places = data['parks'];
 
           setState(() {
             parkingPlaces = places.map((park) {
-              // Safe parse the lat and lng values, defaulting to 0.0 if null
               final lat = park['marker1'] != null ? double.tryParse(park['marker1'].toString()) : 0.0;
               final lng = park['marker2'] != null ? double.tryParse(park['marker2'].toString()) : 0.0;
 
               return {
                 'lat': lat,
                 'lng': lng,
-                'address': park['address'] ?? 'Unknown address',  // Fallback for null address
-                'name': park['name'] ?? 'No Name',  // Fallback for null name
-                'work_schedule': park['work_schedule'] ?? 'Unknown',  // Parking work schedule
-                'tarif': park['tarif'] ?? 'N/A',  // Parking price per hour
-                'invalid': park['invalid'] ?? 'N/A',  // Disabled parking availability
-                'all_place': park['all_place'] ?? '0',  // Available parking spots
+                'address': park['address'] ?? 'Unknown address',
+                'name': park['name'] ?? 'No Name',
+                'work_schedule': park['work_schedule'] ?? 'Unknown',
+                'tarif': park['tarif'] ?? 'N/A',
+                'invalid': park['invalid'] ?? 'N/A',
+                'all_place': park['all_place'] ?? '0',
                 'polygon': [
                   LatLng(double.parse(park['polygon1']), double.parse(park['polygon2'])),
                   LatLng(double.parse(park['polygon3']), double.parse(park['polygon4'])),
@@ -148,7 +151,7 @@ class _MapScreenState extends State<NavigatorTab> {
             }).toList();
 
             isLoading = false;
-            showParking = true; // Show parking places on the map
+            showParking = true;
           });
         } else {
           throw Exception('Invalid data format: Missing "parks" key');
@@ -161,7 +164,7 @@ class _MapScreenState extends State<NavigatorTab> {
         isLoading = false;
         hasError = true;
       });
-      print('Error occurred: $e'); // Debugging print statement
+      print('Error occurred: $e');
     }
   }
 
@@ -173,30 +176,35 @@ class _MapScreenState extends State<NavigatorTab> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              center: LatLng(38.5598, 68.7870),
-              zoom: 13.0,
+              initialCenter: LatLng(38.5598, 68.7870), // Use initialCenter instead of center
+              initialZoom: 13.0, // Use initialZoom instead of zoom
               minZoom: 5.0,
               maxZoom: 18.0,
-              interactiveFlags: InteractiveFlag.all,
+              onMapEvent: (mapEvent) {
+                setState(() {
+                  _currentCenter = _mapController.camera.center;
+                  _currentZoom = _mapController.camera.zoom;
+                });
+              },
             ),
             children: [
               TileLayer(
                 urlTemplate: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
                 subdomains: ['a', 'b', 'c'],
+                retinaMode: RetinaMode.isHighDensity(context), // Call the method with context
+                userAgentPackageName: 'com.mintras.dts', // Recommended for production
               ),
-              // Show polygons (parking area) if showParking is true
               if (showParking && !isLoading && !hasError)
                 PolygonLayer(
                   polygons: parkingPlaces.map<Polygon>((place) {
                     return Polygon(
-                      points: place['polygon'], // The polygon coordinates
-                      color: Colors.blue.withOpacity(0.3), // Blue color for polygon
+                      points: place['polygon'],
+                      color: Colors.blue.withOpacity(0.3),
                       borderColor: Colors.blue,
                       borderStrokeWidth: 6,
                     );
                   }).toList(),
                 ),
-              // Show parking markers if showParking is true
               if (showParking && !isLoading && !hasError)
                 MarkerLayer(
                   markers: parkingPlaces.map((place) {
@@ -208,7 +216,7 @@ class _MapScreenState extends State<NavigatorTab> {
                         point: LatLng(lat, lng),
                         width: 30.0,
                         height: 30.0,
-                        builder: (ctx) => GestureDetector(
+                        child: GestureDetector(
                           onTap: () {
                             showDialog(
                               context: context,
@@ -239,11 +247,13 @@ class _MapScreenState extends State<NavigatorTab> {
                         ),
                       );
                     } else {
-                      return null;
+                      return Marker(
+                        point: LatLng(0, 0),
+                        child: SizedBox(),
+                      );
                     }
-                  }).whereType<Marker>().toList(),
+                  }).toList(),
                 ),
-              // Show charger stations if showStations is true
               if (showStations && !isLoading && !hasError)
                 MarkerLayer(
                   markers: gasStations.map((station) {
@@ -257,7 +267,7 @@ class _MapScreenState extends State<NavigatorTab> {
                         point: LatLng(lat, lng),
                         width: 80.0,
                         height: 80.0,
-                        builder: (ctx) => GestureDetector(
+                        child: GestureDetector(
                           onTap: () {
                             showDialog(
                               context: context,
@@ -297,9 +307,12 @@ class _MapScreenState extends State<NavigatorTab> {
                         ),
                       );
                     } else {
-                      return null;
+                      return Marker(
+                        point: LatLng(0, 0),
+                        child: SizedBox(),
+                      );
                     }
-                  }).whereType<Marker>().toList(),
+                  }).toList(),
                 ),
             ],
           ),
@@ -310,36 +323,40 @@ class _MapScreenState extends State<NavigatorTab> {
               mainAxisAlignment: MainAxisAlignment.end,
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Parking toggle button at the top
                 _buildActionButton(
                   icon: Icons.local_parking,
                   onPressed: _fetchParkingPlaces,
-                  backgroundColor: showParking ? Colors.blue : Colors.grey, // Green if active, grey if inactive
+                  backgroundColor: showParking ? Colors.blue : Colors.grey,
                 ),
                 SizedBox(height: 10),
-                // EV charger toggle button at the top
                 _buildActionButton(
                   icon: Icons.ev_station,
                   onPressed: _fetchGasStations,
-                  backgroundColor: showStations ? Colors.blue : Colors.grey, // Blue if active, grey if inactive
+                  backgroundColor: showStations ? Colors.blue : Colors.grey,
                 ),
                 SizedBox(height: 10),
-                // Zoom in button below
                 _buildActionButton(
                   icon: Icons.add,
                   onPressed: () {
-                    _mapController.move(_mapController.center, _mapController.zoom + 1);
+                    final newZoom = _currentZoom + 1;
+                    _mapController.move(_mapController.camera.center, newZoom);
+                    setState(() {
+                      _currentZoom = newZoom;
+                    });
                   },
-                  backgroundColor: Colors.grey, // Blue for zoom in
+                  backgroundColor: Colors.grey,
                 ),
                 SizedBox(height: 10),
-                // Zoom out button below
                 _buildActionButton(
                   icon: Icons.remove,
                   onPressed: () {
-                    _mapController.move(_mapController.center, _mapController.zoom - 1);
+                    final newZoom = _currentZoom - 1;
+                    _mapController.move(_mapController.camera.center, newZoom);
+                    setState(() {
+                      _currentZoom = newZoom;
+                    });
                   },
-                  backgroundColor: Colors.grey, // Red for zoom out
+                  backgroundColor: Colors.grey,
                 ),
               ],
             ),
@@ -370,18 +387,16 @@ class _MapScreenState extends State<NavigatorTab> {
       style: ElevatedButton.styleFrom(
         shape: CircleBorder(),
         padding: EdgeInsets.all(15),
-        backgroundColor: backgroundColor, // Button background color
+        backgroundColor: backgroundColor,
       ),
       child: Icon(
         icon,
-        color: Colors.white, // Icon color
-        size: 30, // Icon size
+        color: Colors.white,
+        size: 30,
       ),
     );
   }
 
-
-  // Dialog to show parking details
   Widget _buildParkingDialog(Map<String, dynamic> place) {
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -396,7 +411,6 @@ class _MapScreenState extends State<NavigatorTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Parking Name & Icon
               Row(
                 children: [
                   Icon(Icons.local_parking, color: Colors.blue, size: 36),
@@ -414,8 +428,6 @@ class _MapScreenState extends State<NavigatorTab> {
                 ],
               ),
               SizedBox(height: 20),
-
-              // Parking Details
               Divider(color: Colors.grey[300]),
               _infoRow(Icons.location_on, "Адрес", place['address']),
               Divider(color: Colors.grey[300]),
@@ -426,10 +438,7 @@ class _MapScreenState extends State<NavigatorTab> {
               _infoRow(Icons.accessibility_new, "Место для инвалидов", place['invalid'] == '1' ? 'Есть' : 'Нет'),
               Divider(color: Colors.grey[300]),
               _infoRow(Icons.place, "Доступные места", place['all_place']),
-
               SizedBox(height: 16),
-
-              // Close Button
               Center(
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -453,7 +462,6 @@ class _MapScreenState extends State<NavigatorTab> {
     );
   }
 
-  // Dialog to show charger station details
   Widget _buildStationDialog(Map<String, dynamic> station) {
     return Dialog(
       shape: RoundedRectangleBorder(
@@ -468,7 +476,6 @@ class _MapScreenState extends State<NavigatorTab> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Station Name & Icon
               Row(
                 children: [
                   Icon(Icons.ev_station, color: Colors.blue, size: 36),
@@ -486,8 +493,6 @@ class _MapScreenState extends State<NavigatorTab> {
                 ],
               ),
               SizedBox(height: 20),
-
-              // Station Details
               Divider(color: Colors.grey[300]),
               _infoRow(Icons.location_on, "Адрес", station['address']),
               _infoRow(Icons.bolt, "Мощность", station['connector_capacity']),
@@ -495,22 +500,16 @@ class _MapScreenState extends State<NavigatorTab> {
               _infoRow(Icons.access_time, "График работы", station['work_schedule']),
               _infoRow(Icons.place, "Зона", station['zone_name']),
               Divider(color: Colors.grey[300]),
-
               SizedBox(height: 16),
-
-              // Connectors Section
               Text(
                 "Коннекторы:",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 12),
               ...station['connectors'].map<Widget>((connector) {
                 return _connectorInfo(connector);
               }).toList(),
-
               SizedBox(height: 24),
-
-              // Close Button
               Center(
                 child: ElevatedButton(
                   onPressed: () => Navigator.pop(context),
@@ -544,7 +543,7 @@ class _MapScreenState extends State<NavigatorTab> {
           SizedBox(width: 10),
           Text(
             "Коннектор ${connector['connector_id']}: ",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, color: Colors.black, fontWeight: FontWeight.bold),
           ),
           Expanded(
             child: Text(
@@ -565,19 +564,19 @@ class _MapScreenState extends State<NavigatorTab> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,  // Align to top for better wrapping
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: Colors.blue, size: 24),
           SizedBox(width: 10),
           Text(
             "$label: ",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
           ),
           Expanded(
             child: Text(
               value,
-              style: TextStyle(fontSize: 16),
-              softWrap: true,  // Allow text to wrap onto the next line
+              style: TextStyle(fontSize: 16, color: Colors.black),
+              softWrap: true,
             ),
           ),
         ],
@@ -587,9 +586,9 @@ class _MapScreenState extends State<NavigatorTab> {
 }
 
 void main() => runApp(MaterialApp(
-  home: NavigatorTab(), // Ensure this is a valid widget in your app
+  home: NavigatorTab(),
   theme: ThemeData(
     useMaterial3: true,
-    primarySwatch: Colors.blue, // Using a swatch for better theming
+    primarySwatch: Colors.blue,
   ),
 ));

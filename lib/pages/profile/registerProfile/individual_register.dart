@@ -111,7 +111,7 @@ class _IndividualPageState extends State<IndividualPage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://10.10.25.239:8088/?inn=$inn'),
+        Uri.parse('http://10.10.25.239:8087/?inn=$inn'),
         headers: {
           'accept': '*/*',
           'Authorization': 'Bearer $token',
@@ -132,7 +132,7 @@ class _IndividualPageState extends State<IndividualPage> {
       } else if (response.statusCode == 404) {
         // INN not found
         setState(() {
-          nameController.text = "Не найдено22"; // Display "Not Found" in Russian
+          nameController.text = "Не найдено"; // Display "Not Found" in Russian
           _isNameFieldDisabled = false; // Keep the field editable
           _errorMessage = null; // Clear errors if any
         });

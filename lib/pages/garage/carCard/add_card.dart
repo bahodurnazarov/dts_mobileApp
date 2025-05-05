@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:DTS/config/config.dart';
+import 'package:dts/config/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -9,7 +9,8 @@ import 'package:search_choices/search_choices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/globals.dart';
-import '../../auth/chooseTypePage.dart';
+import '../../auth/businessPage.dart';
+import '../../auth/privateAccountPage.dart';
 import '../../auth/refresh_token.dart';
 import '../../home_page.dart';
 import '../garage_tab.dart';
@@ -284,14 +285,32 @@ class _AddCarPageState extends State<AddCarPage> {
       case 2:
         baseApiUrl = '$apiUrl/company/$globalUserId/transport?transportId=$transportId';
         break;
-      case 0:
-      // If globalUserType = 0, navigate to ChooseTypePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChooseTypePage(),
-          ),
-        );
+      case 0: // EDIT2
+      // Get the account type from SharedPreferences or widget parameter
+        final String accountType = await SharedPreferences.getInstance()
+            .then((prefs) => prefs.getString('accountType') ?? 'private');
+
+        // Or if you have access to a type variable from the widget:
+        // final String accountType = widget.type;
+
+        await SharedPreferences.getInstance().then((prefs) =>
+            prefs.setString('accountType', accountType));
+
+        if (accountType == 'private') {
+          print("Private account selected");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PrivateAccountPage(),
+            ),
+          );
+        } else if (accountType == 'business') {
+          print("Business account selected");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => BusinessPage()),
+          );
+        }
         return; // Prevent further execution after navigation
       default:
         print("Invalid user type");

@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:DTS/pages/profile/profile_tab.dart';
+import 'package:dts/pages/profile/profile_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:search_choices/search_choices.dart';

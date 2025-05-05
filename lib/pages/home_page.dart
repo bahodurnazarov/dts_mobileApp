@@ -1,10 +1,9 @@
-import 'package:DTS/config/globals.dart';
-import 'package:DTS/pages/profile/profile_tab.dart';
+import 'package:dts/config/globals.dart';
+import 'package:dts/pages/profile/profile_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'directory/directory_tab.dart';
 import 'navigator/MapScreen.dart';
-import 'navigator/navigator_tab.dart';
 import 'payments/payments_tab.dart';
 import 'garage/garage_tab.dart';
 
@@ -44,6 +43,7 @@ class _HomePageState extends State<HomePage> {
               ),
               label: 'Профиль',
             ),
+            // s.odil.1986@gmail.com begajon46@gmail.com
           ],
           activeColor: Colors.blue[600],
           backgroundColor: Colors.white,
@@ -51,7 +51,7 @@ class _HomePageState extends State<HomePage> {
         tabBuilder: (BuildContext context, int index) {
           switch (index) {
             case 0:
-              return GarageTab();
+              return GarageTab(); // client page
             case 1:
               return PaymentsTab();
             case 2:

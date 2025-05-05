@@ -1,11 +1,14 @@
-import 'package:DTS/config/globals.dart';
+import 'package:dts/config/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../config/config.dart';
-import '../auth/chooseTypePage.dart';
+import '../auth/businessPage.dart';
+import '../auth/privateAccountPage.dart';
 import '../auth/refresh_token.dart';
+import '../lessons/lessons_page.dart';
+import '../licency/LicensePage.dart' as licency ;
 import 'carCard/add_card.dart';
 import 'carCard/app_bar.dart';
 import 'carCard/car_card.dart';
@@ -47,30 +50,40 @@ class _GarageTabState extends State<GarageTab> {
     String? token = prefs.getString('auth_token');
     String baseApiUrl = '';
     // Set the appropriate API URL based on the userType
+    print(" GarageTab globalUserId :" + globalUserId);
     switch (globalUserType) {
       case 1:
         baseApiUrl = '$apiUrl/individual/$globalUserId/transports?page=0&limit=30&sort=id';
         break;
       case 3:
-        baseApiUrl = '$apiUrl/entrepreneur/$globalUserId/transports?page=0&limit=30&sort=id';
+        baseApiUrl = '$apiUrl/entrepreneur/transports?page=0&limit=30&sort=id';
         break;
       case 2:
-        baseApiUrl = '$apiUrl/company/$globalUserId/transports?page=0&limit=30&sort=id';
+        baseApiUrl = '$apiUrl/company/transports?page=0&limit=30&sort=id';
         break;
-      case 0:
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChooseTypePage(),
-          ),
-        );
-        return;
-      default:
-        setState(() {
-          _errorMessage = "Invalid user type";
-          _isLoading = false;
-        });
-        return;
+      case 0: // EDIT2
+      // Get the account type from SharedPreferences or widget parameter
+        final String accountType = await SharedPreferences.getInstance()
+            .then((prefs) => prefs.getString('accountType') ?? 'private');
+
+        await SharedPreferences.getInstance().then((prefs) =>
+            prefs.setString('accountType', accountType));
+        if (accountType == 'private') {
+          print("Private account selected");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PrivateAccountPage(),
+            ),
+          );
+        } else if (accountType == 'business') {
+          print("Business account selected");
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => BusinessPage()),
+          );
+        }
+        return; // Prevent further execution after navigation
     }
 
     try {
@@ -85,8 +98,11 @@ class _GarageTabState extends State<GarageTab> {
       if (response.statusCode == 200) {
         final decodedResponse = utf8.decode(response.bodyBytes);
         final data = jsonDecode(decodedResponse);
+
+        final List<dynamic> content = data['content'] ?? [];
+
         setState(() {
-          carData = List<Map<String, dynamic>>.from(data['content']);
+          carData = content.map<Map<String, dynamic>>((item) => item as Map<String, dynamic>).toList();
           _isLoading = false;
         });
       } else if (response.statusCode == 401) {
@@ -173,7 +189,7 @@ class _GarageTabState extends State<GarageTab> {
                 if (index < carData.length) {
                   return Padding(
                     padding: EdgeInsets.zero,
-                    child: CarCard(
+                    child: CarCard( // here is the error
                       carData: carData[index],
                       flag: 'assets/tajikistan_flag.jpg',
                     ),
@@ -231,82 +247,93 @@ class _GarageTabState extends State<GarageTab> {
         childAspectRatio: 2.5,
         physics: NeverScrollableScrollPhysics(), // Disables scrolling
         children: [
-          _buildModernButton('Лицензии', Icons.book),
-          _buildModernButton('Дозвола', Icons.assignment_turned_in),
-          _buildModernButton('Сертификата', Icons.verified),
+          _buildModernButton('Лицензия', Icons.book),
+          _buildModernButton('Дозвол', Icons.assignment_turned_in),
+          _buildModernButton('Сертификат', Icons.verified),
           _buildModernButton('e-TIR', Icons.local_shipping),
         ],
       ),
     );
   }
 
-  Widget _buildInfoCardsSection() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                flex: 2,
-                child: InfoCard(
-                  title: 'Штрафы',
-                  icon: Icons.gavel,
-                  subtitle: '3 штрафы',
-                  duration: '',
+  _buildInfoCardsSection() {
+    return IgnorePointer(
+      ignoring: true,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        child: Column(
+          children: [
+            // Штрафы (Fines)
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: InfoCard(
+                    title: 'Штрафы',
+                    icon: Icons.gavel,
+                    subtitle: '3 штрафы',
+                    duration: '',
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InfoCard(
-                title: 'Тонировка',
-                icon: Icons.tune,
-                subtitle: 'Срок: 1 год',
-                duration: '12 месяцев',
-              ),
-              InfoCard(
-                title: 'Тех. осмотр',
-                icon: Icons.build,
-                subtitle: 'Годен до 2024',
-                duration: '1 год',
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              InfoCard(
-                title: 'Доверенность',
-                icon: Icons.assignment,
-                subtitle: 'На 1 год',
-                duration: '12 месяцев',
-              ),
-              InfoCard(
-                title: 'Страховка',
-                icon: Icons.security,
-                subtitle: 'Продлена до 2025',
-                duration: '12 месяцев',
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              InfoCard(
-                title: 'Газ',
-                icon: Icons.local_gas_station,
-                subtitle: 'Заправка через месяц',
-                duration: '30 дней',
-              ),
-              SizedBox(width: 16),
-            ],
-          ),
-        ],
+              ],
+            ),
+
+            // Тонировка (Tinting) & Тех. осмотр (Tech Inspection)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InfoCard(
+                  title: 'Тонировка',
+                  icon: Icons.tune,
+                  subtitle: 'Срок: 1 год',
+                  duration: '12 месяцев',
+                ),
+                InfoCard(
+                  title: 'Тех. осмотр',
+                  icon: Icons.build,
+                  subtitle: 'Годен до 2024',
+                  duration: '1 год',
+                ),
+              ],
+            ),
+
+            // Доверенность (Proxy) & Страховка (Insurance)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                InfoCard(
+                  title: 'Доверенность',
+                  icon: Icons.assignment,
+                  subtitle: 'На 1 год',
+                  duration: '12 месяцев',
+                ),
+                InfoCard(
+                  title: 'Страховка',
+                  icon: Icons.security,
+                  subtitle: 'Продлена до 2025',
+                  duration: '12 месяцев',
+                ),
+              ],
+            ),
+
+            // Газ (Gas)
+            Row(
+              children: [
+                InfoCard(
+                  title: 'Газ',
+                  icon: Icons.local_gas_station,
+                  subtitle: 'Заправка через месяц',
+                  duration: '30 дней',
+                ),
+                SizedBox(width: 16),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
+
 
   Widget _buildModernButton(String title, IconData icon) {
     return ElevatedButton(
@@ -320,7 +347,19 @@ class _GarageTabState extends State<GarageTab> {
         elevation: 5,
       ),
       onPressed: () {
-        // Add action logic here
+        if (title == 'Сертификат') {  // Changed from 'Сертификата'
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LessonsPage()),
+          );
+        } else if (title == 'Лицензия') {  // Changed from 'Лицензии'
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => licency.LicensePage()),
+          );
+        } else {
+          // Handle other buttons if needed
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,

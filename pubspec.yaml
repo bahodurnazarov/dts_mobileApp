@@ -1,8 +1,8 @@
-name: DTS
+name: dts
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.0+5
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -12,25 +12,30 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_secure_storage: ^8.0.0
+  video_player: ^2.7.0
+  flutter_secure_storage: ^9.2.4
   http: ^1.2.0
-  logger: ^1.0.0
+  logger: ^2.5.0
   shared_preferences: ^2.1.0
   cupertino_icons: ^1.0.8
-  mobile_scanner: ^2.0.0 # Check for the latest version on pub.dev
-  flutter_map: ^5.0.0
+  mobile_scanner: ^6.0.10 # Check for the latest version on pub.dev
+  flutter_map: ^8.1.1
   latlong2: ^0.9.0
-  geolocator: ^9.0.0 # Updated to the latest version
+  geolocator: ^14.0.0 # Updated to the latest version
   search_choices: ^2.0.0 # Replace with the latest version on pub.dev
-  carousel_slider: ^4.2.1 # For modern carousel
-  lottie: ^2.7.0 # For animations
+  carousel_slider: ^5.0.0 # For modern carousel
+  lottie: ^3.3.1 # For animations
+  open_file: ^3.3.1
+  path_provider: ^2.1.1
+  permission_handler: ^12.0.0+1
+
 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.10.0
-  flutter_lints: ^2.0.0 # Downgraded for compatibility with Flutter 3.2.3
+  flutter_launcher_icons: ^0.14.3
+  flutter_lints: ^5.0.0 # Downgraded for compatibility with Flutter 3.2.3
 
 flutter_icons:
   android: true
@@ -40,5 +45,8 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/
     - assets/car_images/
     - assets/tajikistan_flag.jpg
+    - assets/video.mp4
+    - assets/TFile.ppt

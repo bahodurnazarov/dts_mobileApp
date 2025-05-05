@@ -1,3 +1,4 @@
+import 'package:dts/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -5,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../../config/config.dart';
 import '../../../config/globals.dart';
-import '../../auth/chooseTypePage.dart';
+import '../../auth/businessPage.dart';
 import '../../auth/refresh_token.dart';
 import '../profile_tab.dart';
 import 'individualEntrepreneur_register.dart';
@@ -57,36 +58,37 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
         final data = json.decode(response.body);
         if (data['content'] != null) {
           await _fetchUserInfo(data['content']);
-        } else {
-          // Use switch-case to navigate based on userType
-          switch (widget.userType) {
-            case 1:
-              Navigator.pushReplacement(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => IndividualPage(registrationType: 1),
-                ),
-              );
-              break;
-            case 2:
-              Navigator.pushReplacement(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => LegalRegistrationPage(registrationType: 2),
-                ),
-              );
-              break;
-            case 3:
-              Navigator.pushReplacement(
-                context,
-                CupertinoPageRoute(
-                  builder: (context) => EnterpreneurRegistrationPage(registrationType: 3),
-                ),
-              );
-              break;
-            default:
-              throw Exception('Invalid user type');
-          }
+        }
+
+      } else if (response.statusCode == 404) {
+        // Use switch-case to navigate based on userType
+        switch (widget.userType) {
+          case 1:
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => IndividualPage(registrationType: 1),
+              ),
+            );
+            break;
+          case 2:
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => LegalRegistrationPage(registrationType: 2),
+              ),
+            );
+            break;
+          case 3:
+            Navigator.pushReplacement(
+              context,
+              CupertinoPageRoute(
+                builder: (context) => EnterpreneurRegistrationPage(registrationType: 3),
+              ),
+            );
+            break;
+          default:
+            throw Exception('Invalid user type');
         }
       } else if (response.statusCode == 401) {
         await refreshAccessToken(context);
@@ -335,7 +337,7 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
                       Navigator.push(
                         context,
                         CupertinoPageRoute(
-                          builder: (context) => ChooseTypePage(),
+                          builder: (context) => HomePage(), // EDIT2
                         ),
                       );
                     },
@@ -407,7 +409,7 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
               ),
               SizedBox(height: 20),
               Text(
-                'Не удалось загрузить информацию.',
+                'Не удалось загрузить информациddddю.',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w500,

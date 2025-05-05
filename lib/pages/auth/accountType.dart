@@ -1,7 +1,9 @@
+import 'package:dts/pages/auth/businessUserType.dart';
+import 'package:dts/pages/auth/privateAccountPage.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../home_page.dart';
-import 'chooseTypePage.dart';
+import '../../config/config.dart';
+import 'businessPage.dart';
 
 class AccountTypeSelection extends StatelessWidget {
   const AccountTypeSelection({Key? key}) : super(key: key);
@@ -10,24 +12,36 @@ class AccountTypeSelection extends StatelessWidget {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('accountType', type);
 
-    // Navigate to HomePage
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => ChooseTypePage()),
-    );
+    if (type == 'private') {
+      print("Private account selected");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PrivateAccountPage(),
+        ),
+      );
+    } else if (type == 'business') {
+      print("Business account selected");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => BusinessPage()),
+      );
+    } else {
+      print("Unknown account type: $type");
+      // Handle unexpected account type here if needed
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade100, // Light grey background
+      backgroundColor: Colors.grey.shade100,
       body: SafeArea(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // Business Account Card
               _buildAccountCard(
                 context,
                 title: "Бизнес-аккаунт",
@@ -37,8 +51,6 @@ class AccountTypeSelection extends StatelessWidget {
                 onTap: () => _saveAccountType(context, 'business'),
               ),
               const SizedBox(height: 20),
-
-              // Private Account Card
               _buildAccountCard(
                 context,
                 title: "Личный Аккаунт",

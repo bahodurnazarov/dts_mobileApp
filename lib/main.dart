@@ -1,12 +1,38 @@
-import 'package:DTS/pages/auth/accountType.dart';
-import 'package:DTS/pages/home_page.dart';
+import 'dart:ui';
+
+import 'package:dts/pages/auth/login_page.dart';
+import 'package:dts/pages/home_page.dart';
+import 'package:dts/pages/lessons/lessons_page.dart';
+import 'package:dts/pages/navigator/MapScreen.dart';
+import 'package:dts/pages/profile/profile_tab.dart';
 import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'pages/auth/login_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'logging_service.dart';
 
-void main() {
+
+void main() async {
+  // Initialize logging
+  WidgetsFlutterBinding.ensureInitialized();
+  await LoggingService.initialize();
+
+  // Catch and log all errors
+  FlutterError.onError = (details) {
+    LoggingService.log('Flutter error: ${details.exception}', level: Level.error);
+    if (details.stack != null) {
+      LoggingService.log('Stack trace: ${details.stack}', level: Level.error);
+    }
+  };
+
+  // Catch and log Dart errors
+  PlatformDispatcher.instance.onError = (error, stack) {
+    LoggingService.log('Dart error: $error', level: Level.error);
+    LoggingService.log('Stack trace: $stack', level: Level.error);
+    return true;
+  };
+
   runApp(MyApp());
 }
 
@@ -71,10 +97,10 @@ class _HomeWrapperState extends State<HomeWrapper> {
 
     // If token is null or empty, navigate to LoginPage
     if (token == null || token!.isEmpty) {
-      return AccountTypeSelection();
+      return NavigatorTab();
     }
 
     // Otherwise, navigate to HomePage
-    return AccountTypeSelection();
+    return NavigatorTab();
   }
 }

@@ -51,11 +51,11 @@ class _GetCardPageState extends State<GetCardPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Информация о Транспорте'),
-        backgroundColor: Colors.white, // Set background color to white
+        backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
       ),
-      backgroundColor: Colors.white, // Set background color to white
+      backgroundColor: Colors.white,
       body: FutureBuilder<Map<String, dynamic>>(
         future: cardData,
         builder: (context, snapshot) {
@@ -85,12 +85,11 @@ class _GetCardPageState extends State<GetCardPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Hero Title Section
                           Hero(
                             tag: 'car-${widget.cardId}',
                             child: Center(
                               child: Text(
-                                data['model'] ?? 'Модель неизвестна',
+                                data['CarModel'] ?? 'Модель неизвестна',
                                 style: const TextStyle(
                                   fontSize: 28,
                                   fontWeight: FontWeight.bold,
@@ -100,36 +99,31 @@ class _GetCardPageState extends State<GetCardPage> {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          // Details Section
                           Center(
                             child: Container(
                               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
                               decoration: BoxDecoration(
-                                color: Colors.white, // Background color
-                                borderRadius: BorderRadius.circular(8), // Rounded corners
-                                border: Border.all(
-                                  color: Colors.black, // Border color
-                                  width: 1, // Border width
-                                ),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.black, width: 1),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.2), // Shadow color
-                                    blurRadius: 8, // Shadow blur radius
-                                    offset: const Offset(0, 4), // Shadow offset
+                                    color: Colors.black.withOpacity(0.2),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
                                   ),
                                 ],
                               ),
                               child: Row(
-                                mainAxisSize: MainAxisSize.min, // Take only the necessary space
+                                mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // Dots and Flag with Country Abbreviation
                                   Row(
                                     children: [
                                       const Text(
-                                        '• ', // Starting dot before the flag
+                                        '• ',
                                         style: TextStyle(
-                                          fontSize: 16, // Size of the dot
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: Colors.black,
                                         ),
@@ -137,7 +131,7 @@ class _GetCardPageState extends State<GetCardPage> {
                                       Column(
                                         children: [
                                           ClipRRect(
-                                            borderRadius: BorderRadius.circular(4), // Smooth edges
+                                            borderRadius: BorderRadius.circular(4),
                                             child: Image.asset(
                                               flag,
                                               width: 26,
@@ -145,11 +139,10 @@ class _GetCardPageState extends State<GetCardPage> {
                                               fit: BoxFit.cover,
                                             ),
                                           ),
-                                          // Country abbreviation under the flag
                                           const Text(
                                             'TJ',
                                             style: TextStyle(
-                                              fontSize: 12, // Smaller font size for country abbreviation
+                                              fontSize: 12,
                                               fontWeight: FontWeight.w700,
                                               color: Colors.black,
                                             ),
@@ -159,21 +152,20 @@ class _GetCardPageState extends State<GetCardPage> {
                                     ],
                                   ),
                                   const SizedBox(width: 8),
-                                  // Car Number with Ending Dot
                                   Row(
                                     children: [
                                       Text(
-                                        data['carNumber'],
+                                        data['LicensePlate'] ?? 'Неизвестный номер',
                                         style: const TextStyle(
-                                          fontSize: 28, // Car number font size
+                                          fontSize: 28,
                                           fontWeight: FontWeight.w600,
                                           color: Colors.black,
                                         ),
                                       ),
                                       const Text(
-                                        ' •', // Ending dot after the car number
+                                        ' •',
                                         style: TextStyle(
-                                          fontSize: 16, // Size of the dot
+                                          fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: Colors.black,
                                         ),
@@ -185,13 +177,13 @@ class _GetCardPageState extends State<GetCardPage> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          _buildInfoRow('Тип транспорта:', data['transportType']['type'], Icons.category),
-                          _buildInfoRow('Бренд:', data['transportBrand']['name'], Icons.branding_watermark),
+                          _buildInfoRow('Тип транспорта:', data['transportType']?['type'], Icons.category),
+                          _buildInfoRow('Бренд:', data['transportBrand']?['name'], Icons.branding_watermark),
                           _buildInfoRow('Год выпуска:', data['year'], Icons.calendar_today),
-                          _buildInfoRow('Топливо:', data['transportFuel']['name'], Icons.local_gas_station),
+                          _buildInfoRow('Топливо:', data['transportFuel']?['name'], Icons.local_gas_station),
                           _buildInfoRow('Вместимость (тонны):', data['capacity'], Icons.line_weight),
                           _buildInfoRow('Макс. пассажиры:', data['maxCapacity'], Icons.people),
-                          _buildInfoRow('Тип владельца:', data['transportOwnerType']['name'], Icons.person),
+                          _buildInfoRow('Тип владельца:', data['transportOwnerType']?['name'], Icons.person),
                           _buildInfoRow('VIN код:', data['vinCod'], Icons.qr_code),
                           const Divider(height: 30, color: Colors.blue),
                           const Text(
@@ -203,9 +195,9 @@ class _GetCardPageState extends State<GetCardPage> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          _buildInfoRow('Длина:', '${data['longth']} мм', Icons.straighten),
-                          _buildInfoRow('Высота:', '${data['height']} мм', Icons.height),
-                          _buildInfoRow('Вес:', '${data['weight']} кг', Icons.fitness_center),
+                          _buildInfoRow('Длина:', '${data['longth'] ?? 'N/A'} мм', Icons.straighten),
+                          _buildInfoRow('Высота:', '${data['height'] ?? 'N/A'} мм', Icons.height),
+                          _buildInfoRow('Вес:', '${data['weight'] ?? 'N/A'} кг', Icons.fitness_center),
                         ],
                       ),
                     ),
@@ -234,7 +226,6 @@ class _GetCardPageState extends State<GetCardPage> {
     );
   }
 
-  /// Function to delete the car
   Future<void> _deleteCar(String carId) async {
     final url = '$apiUrl/transport/$carId';
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -252,14 +243,13 @@ class _GetCardPageState extends State<GetCardPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Автомобиль успешно удален')),
       );
-      Navigator.pop(context); // Go back to the previous screen
+      Navigator.pop(context);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка при удалении: ${response.body}')),
       );
     }
   }
-
 
   Widget _buildInfoRow(String label, dynamic value, IconData icon) {
     return Padding(

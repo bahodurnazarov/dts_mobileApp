@@ -21,7 +21,9 @@ class _QRCodeScannerPageState extends State<QRCodeScannerPage> {
               alignment: Alignment.center,
               children: [
                 MobileScanner(
-                  onDetect: (Barcode barcode, MobileScannerArguments? args) {
+                  onDetect: (BarcodeCapture barcodeCapture) {
+                    // Get the first barcode from the capture
+                    final barcode = barcodeCapture.barcodes.first;
                     if (barcode.rawValue != null) {
                       setState(() {
                         qrText = barcode.rawValue!;

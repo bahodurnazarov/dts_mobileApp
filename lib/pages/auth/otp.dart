@@ -214,7 +214,7 @@ class _OTPScreenState extends State<OTPScreen> {
                           padding: EdgeInsets.symmetric(vertical: 16),
                           child: Text(
                             'Подтвердить',
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
                           ),
                         ),
                       ),

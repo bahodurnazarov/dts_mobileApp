@@ -5,7 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../../../config/config.dart';
 import '../../../config/globals.dart';
-import '../../auth/chooseTypePage.dart';
+import '../../auth/businessPage.dart';
+import '../../auth/privateAccountPage.dart';
 import '../../auth/refresh_token.dart';
 import 'list_cards.dart';
 
@@ -13,38 +14,43 @@ class AppBarContent extends StatelessWidget {
   final String flag = 'assets/tajikistan_flag.jpg';
 
   // Function to fetch car data from API
-  Future<List<Map<String, dynamic>>> _fetchCars(BuildContext context) async {
-    // Retrieve the token from SharedPreferences
+  Future<List<Map<String, dynamic>>> _fetchCars(BuildContext context, {bool isRetry = false}) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('auth_token');
 
-    String baseApiUrl = '';  // Initialize baseApiUrl with an empty string
+    // Validate token exists
+    if (token == null) {
+      // Handle no token scenario (redirect to login?)
+      throw Exception('No authentication token available');
+    }
 
-    // Set the appropriate API URL based on the userType
+    String baseApiUrl = '';
+    print('AppBarContent globalUserId :' + globalUserId);
+
     switch (globalUserType) {
       case 1:
         baseApiUrl = '$apiUrl/individual/$globalUserId/transports?page=0&limit=30&sort=id';
         break;
       case 3:
-        baseApiUrl = '$apiUrl/entrepreneur/$globalUserId/transports?page=0&limit=30&sort=id';
+        baseApiUrl = '$apiUrl/entrepreneur/transports?page=0&limit=30&sort=id';
         break;
       case 2:
-        baseApiUrl = '$apiUrl/company/$globalUserId/transports?page=0&limit=30&sort=id';
+        baseApiUrl = '$apiUrl/company/transports?page=0&limit=30&sort=id';
         break;
       case 0:
-      // If globalUserType = 0, navigate to ChooseTypePage
-      // If globalUserType = 0, navigate to ChooseTypePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChooseTypePage(),
-          ),
-        );
+      // Handle account type selection
+        final accountType = prefs.getString('accountType') ?? 'private';
+        if (accountType == 'private') {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PrivateAccountPage()));
+        } else {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BusinessPage()));
+        }
+        return []; // Return empty list since we're navigating away
       default:
-        print("Invalid user type");
+        throw Exception('Invalid user type');
     }
 
-    // Make the HTTP request to fetch car data
+    print(baseApiUrl);
     final response = await http.get(
       Uri.parse(baseApiUrl),
       headers: {
@@ -53,20 +59,27 @@ class AppBarContent extends StatelessWidget {
       },
     );
 
-    final decodedResponse = utf8.decode(response.bodyBytes);
-    final data = jsonDecode(decodedResponse);
-
+    // Handle response
     if (response.statusCode == 200) {
+      final decodedResponse = utf8.decode(response.bodyBytes);
+      final data = jsonDecode(decodedResponse);
       return List<Map<String, dynamic>>.from(data['content']);
-    } else if (response.statusCode == 401) {
+    }
+    else if (response.statusCode == 401) {
+      if (isRetry) {
+        // If we already retried once, avoid infinite loop
+        throw Exception('Failed to refresh token or token still invalid');
+      }
+
       print('Access token expired. Refreshing...');
-      // Refresh the token
       await refreshAccessToken(context);
 
-      // Retry the request after refreshing the token
-      return _fetchCars(context);
-    } else {
-      print('Error ${response.statusCode}: ${data}');
+      // Retry with fresh token
+      return _fetchCars(context, isRetry: true);
+    }
+    else {
+      final errorData = jsonDecode(utf8.decode(response.bodyBytes));
+      print('Error ${response.statusCode}: $errorData');
       throw Exception('Failed to load car data');
     }
   }

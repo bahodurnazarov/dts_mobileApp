@@ -1,13 +1,15 @@
-import 'package:DTS/pages/profile/registerProfile/register_type.dart';
+import 'package:dts/pages/auth/businessUserType.dart';
+import 'package:dts/pages/home_page.dart';
+import 'package:dts/pages/profile/registerProfile/register_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/config.dart';
 import '../../config/globals.dart';
-import '../auth/chooseTypePage.dart';
+import '../auth/businessPage.dart';
 import '../auth/login_page.dart';
+import '../auth/privateAccountPage.dart';
 import 'QRScanner.dart';
-import 'SwitchAccount.dart';
 import 'settings/faq_page.dart';
 import 'settings/settings_page.dart';
 import 'settings/support_page.dart';
@@ -44,37 +46,85 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               // User Info Card - Modernized
               GestureDetector(
-                onTap: () {
+                // First, make sure the onTap handler is async
+                onTap: () async {  // Add async here
                   String Url;
 
-                  switch (globalUserType) {
-                    case 1:
-                      Url = '$apiUrl/individual/check/';
-                      break;
-                    case 2:
-                      Url = '$apiUrl/company/check/';
-                      break;
-                    case 3:
-                      Url = '$apiUrl/entrepreneur/check/';
-                      break;
-                    case 0:
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChooseTypePage(),
-                        ),
-                      );
-                      return;
-                    default:
-                      throw Exception("Invalid user type");
-                  }
+                  try {
+                    switch (globalUserType) {
+                      case 1:
+                        final prefs = await SharedPreferences.getInstance();
+                        final accountType = prefs.getString('accountType');
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => UserTypeHandler(Url, globalUserType),
-                    ),
-                  );
+                        if (accountType == 'private') {
+                          print("Private account selected");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => PrivateAccountPage(),
+                            ),
+                          );
+                          return;
+                        } else if (accountType == 'business') {
+                          print("Business account selected");
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => BusinessPage()),
+                          );
+                          return;
+                        } else {
+                          Url = '$apiUrl/individual/check/';
+                          // Continue to UserTypeHandler if no account type set
+                        }
+                        break;
+
+                      case 2:
+                        Url = '$apiUrl/company';
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('accountType', 'business');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BusinessUserType(Url, globalUserType),
+                          ),
+                        );
+                        return;
+
+                      case 3:
+                        Url = '$apiUrl/entrepreneur';
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString('accountType', 'business');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BusinessUserType(Url, globalUserType),
+                          ),
+                        );
+                        return;
+
+                      case 0:
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HomePage(),
+                          ),
+                        );
+                        return;
+
+                      default:
+                        throw Exception("Invalid user type");
+                    }
+
+                    // Only reached for case 1 when no account type is set
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => UserTypeHandler(Url, globalUserType),
+                      ),
+                    );
+                  } catch (e) {
+                    print('Error in profile tap handler: $e');
+                  }
                 },
                 child: Container(
                   decoration: BoxDecoration(
