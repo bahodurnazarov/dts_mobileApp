@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../../config/config.dart';
 import '../auth/businessPage.dart';
+import '../auth/login_page.dart';
 import '../auth/privateAccountPage.dart';
 import '../auth/refresh_token.dart';
 import '../lessons/lessons_page.dart';
@@ -50,7 +51,16 @@ class _GarageTabState extends State<GarageTab> {
     String? token = prefs.getString('auth_token');
     String baseApiUrl = '';
     // Set the appropriate API URL based on the userType
-    print(" GarageTab globalUserId :" + globalUserId);
+    print("GarageTab globalUserId: $globalUserId");
+
+    if (globalUserId == null) {
+      // globalUserId is null, navigate to login page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      return;
+    }
     switch (globalUserType) {
       case 1:
         baseApiUrl = '$apiUrl/individual/$globalUserId/transports?page=0&limit=30&sort=id';
@@ -106,8 +116,13 @@ class _GarageTabState extends State<GarageTab> {
           _isLoading = false;
         });
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
-        await _fetchCars();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+        return;
+          // await refreshAccessToken(context);
+          // await _fetchCars();
       } else {
         setState(() {
           _errorMessage = 'Failed to load car data: ${response.statusCode}';

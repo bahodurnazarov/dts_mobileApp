@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:dts/pages/auth/restore_password.dart';
-import 'package:dts/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,7 +8,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/config.dart';
 import '../../utils/services.dart';
 import 'accountType.dart';
-import 'businessPage.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -93,9 +91,11 @@ class _LoginPageState extends State<LoginPage> {
         _showErrorDialog('Пользователь не найден');
       } else {
         final responseData = json.decode(response.body);
+        print(responseData['message']);
         _showErrorDialog(responseData['message'] ?? 'Invalid username or password.');
       }
     } catch (e) {
+      print(e);
       _showErrorDialog('An error occurred: $e');
     }
   }

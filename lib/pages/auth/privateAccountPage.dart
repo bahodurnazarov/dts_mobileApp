@@ -34,7 +34,7 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
       if (token == null || token.isEmpty) {
         throw Exception('Token is missing or invalid.');
       }
-
+      print('ID '+ id);
       final response = await http.get(
         Uri.parse('$apiUrl/individual/$id'),
         headers: {
@@ -42,7 +42,6 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
           'Authorization': 'Bearer $token',
         },
       );
-
       if (response.statusCode == 200) {
         final data = json.decode(utf8.decode(response.bodyBytes));
         if (data['content'] != null && data['content'] is Map<String, dynamic>) {

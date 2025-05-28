@@ -8,19 +8,21 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/config.dart';
+import '../../auth/businessPage.dart';
+import '../../auth/login_page.dart';
 import '../../auth/refresh_token.dart';
 
 
-class LegalRegistrationPage extends StatefulWidget {
+  class LegalRegistrationPage extends StatefulWidget {
   final int registrationType;
 
   LegalRegistrationPage({required this.registrationType});
 
   @override
   _LegalRegistrationPageState createState() => _LegalRegistrationPageState();
-}
+  }
 
-class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
+  class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController tinController = TextEditingController();
   final TextEditingController einController = TextEditingController();
@@ -58,8 +60,6 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
   }
 
   Future<void> _loadDropdownData() async {
-
-
     try {
       countries = await _fetchDropdownOptions('$apiUrl/country/?page=0&size=3000&sort=id');
       cities = await _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id');
@@ -67,11 +67,15 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
       companyTypes = await _fetchDropdownOptions('$apiUrl/companytype/?page=0&size=3000&sort=id');
       activityStatuses = await _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id');
       properties = await _fetchDropdownOptions('$apiUrl/property/');
-      setState(() {});
+
+      if (mounted) {
+        setState(() {}); // Only call setState if the widget is still mounted
+      }
     } catch (e) {
       print('Error loading dropdown data: $e');
     }
   }
+
 
 
 
@@ -88,7 +92,7 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://10.10.25.239:8088/?inn=$inn'),
+        Uri.parse('$apiUrl/inn/?inn=$inn'),
         headers: {
           'accept': '*/*',
           'Authorization': 'Bearer $token',
@@ -156,7 +160,11 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           };
         }).toList();
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
+        // await refreshAccessToken(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
         return _fetchDropdownOptions(url);
       } else {
         throw Exception('Failed to fetch data. Status code: ${response.statusCode}');
@@ -183,6 +191,19 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
     return Scaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
       appBar: CupertinoNavigationBar(
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(builder: (context) => BusinessPage()),
+                  (Route<dynamic> route) => false,
+            );
+          },
+          child: Icon(
+            CupertinoIcons.back,
+            color: Colors.black,
+          ),
+        ),
         middle: Text(
           'Регистрация',
           style: TextStyle(
@@ -305,6 +326,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           decoration: BoxDecoration(
@@ -340,6 +365,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           keyboardType: TextInputType.number, // Restrict to number input
@@ -380,6 +409,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           keyboardType: TextInputType.number, // Restrict to number input
@@ -424,6 +457,10 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(
             fontSize: 16,
@@ -456,7 +493,7 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
+            color: Colors.black, // changed from grey
           ),
         ),
         SizedBox(height: 8),
@@ -465,20 +502,28 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           items: options.map((option) {
             return DropdownMenuItem<String>(
               value: option['id'],
-              child: Text(option['name'] ?? 'N/A'),
+              child: Text(
+                option['name'] ?? 'N/A',
+                style: TextStyle(color: Colors.black), // text in dropdown
+              ),
             );
           }).toList(),
           value: selectedValue,
-          hint: Text("Выберите $label"), // Russian translation
-          searchHint: Text("Искать $label"), // Russian translation
+          hint: Text(
+            "Выберите $label",
+            style: TextStyle(color: Colors.black), // hint text
+          ),
+          searchHint: Text(
+            "Искать $label",
+            style: TextStyle(color: Colors.black), // search hint text
+          ),
           onChanged: onChanged,
           isExpanded: true,
           displayClearIcon: false,
-          style: TextStyle(fontSize: 14, color: Colors.black87),
+          style: TextStyle(fontSize: 14, color: Colors.black), // selected item text
           menuBackgroundColor: Colors.grey.shade50,
           icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
           searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
-            // Custom search function
             List<int> matchedIndexes = [];
             for (int i = 0; i < items.length; i++) {
               final item = items[i].value ?? '';
@@ -490,7 +535,8 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
             return matchedIndexes;
           },
           searchInputDecoration: InputDecoration(
-            hintText: "Введите для поиска", // Russian translation
+            hintText: "Введите для поиска",
+            hintStyle: TextStyle(color: Colors.black), // search box hint text
             border: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -500,12 +546,11 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
           ),
           closeButton: TextButton(
             onPressed: () {
-              // Implement close action
-              Navigator.pop(context); // Close the dropdown
+              Navigator.pop(context);
             },
             child: Text(
-              "Закрыть", // Russian for "Close"
-              style: TextStyle(color: Colors.blueAccent),
+              "Закрыть",
+              style: TextStyle(color: Colors.black), // close button text
             ),
           ),
         ),
@@ -515,22 +560,6 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
 
 
 
-
-
-
-
-  String _getRegistrationTypeString() {
-    switch (widget.registrationType) {
-      case 1:
-        return "Физ. лицо";
-      case 2:
-        return "Юр. лицо";
-      case 3:
-        return "ИП";
-      default:
-        return "Не выбран";
-    }
-  }
   // Function to show success alert
   void _showSuccessAlert() {
     showDialog(
@@ -555,16 +584,6 @@ class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
     );
   }
   Future<void> _submitRegistration() async {
-
-    String? _responseMessage;
-    // Check if nameController.text is 'Не найдено' and don't proceed if true
-    if (nameController.text == 'Не найдено') {
-      setState(() {
-        _responseMessage = 'Не удалось найти имя. Пожалуйста, проверьте данные.';
-      });
-      return; // Exit the function early if name is not found
-    }
-
 
 
     // Validate required fields

@@ -5,6 +5,9 @@ import 'package:dts/pages/home_page.dart';
 import 'package:dts/pages/lessons/lessons_page.dart';
 import 'package:dts/pages/navigator/MapScreen.dart';
 import 'package:dts/pages/profile/profile_tab.dart';
+import 'package:dts/pages/profile/registerProfile/individualEntrepreneur_register.dart';
+import 'package:dts/pages/profile/registerProfile/individual_register.dart';
+import 'package:dts/pages/profile/registerProfile/legalEntity_register.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -97,10 +100,10 @@ class _HomeWrapperState extends State<HomeWrapper> {
 
     // If token is null or empty, navigate to LoginPage
     if (token == null || token!.isEmpty) {
-      return NavigatorTab();
+      return LoginPage();
     }
 
     // Otherwise, navigate to HomePage
-    return NavigatorTab();
+    return HomePage();
   }
 }

@@ -1,3 +1,4 @@
+import 'package:dts/pages/auth/login_page.dart';
 import 'package:dts/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -91,8 +92,13 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
             throw Exception('Invalid user type');
         }
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
-        return _checkUserType(url);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+        return;
+        // await refreshAccessToken(context);
+        // return _checkUserType(url);
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');
       }
@@ -152,8 +158,13 @@ class _UserTypeHandlerPageState extends State<UserTypeHandler> {
           throw Exception('Invalid content structure in the response.');
         }
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
-        return _fetchUserInfo(id);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+        return;
+        // await refreshAccessToken(context);
+        // return _fetchUserInfo(id);
       } else {
         throw Exception('Failed to fetch user info. Status: ${response.statusCode}');
       }

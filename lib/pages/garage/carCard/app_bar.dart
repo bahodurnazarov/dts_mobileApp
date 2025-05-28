@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import '../../../config/config.dart';
 import '../../../config/globals.dart';
 import '../../auth/businessPage.dart';
+import '../../auth/login_page.dart';
 import '../../auth/privateAccountPage.dart';
 import '../../auth/refresh_token.dart';
 import 'list_cards.dart';
@@ -72,10 +73,15 @@ class AppBarContent extends StatelessWidget {
       }
 
       print('Access token expired. Refreshing...');
-      await refreshAccessToken(context);
 
-      // Retry with fresh token
-      return _fetchCars(context, isRetry: true);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+      // await refreshAccessToken(context);
+      //
+      // // Retry with fresh token
+       return _fetchCars(context, isRetry: true);
     }
     else {
       final errorData = jsonDecode(utf8.decode(response.bodyBytes));

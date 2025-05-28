@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/config.dart';
+import '../../auth/businessPage.dart';
+import '../../auth/login_page.dart';
 
 class IndividualPage extends StatefulWidget {
   final int registrationType;
@@ -68,7 +70,8 @@ class _IndividualPageState extends State<IndividualPage> {
           'accept': 'application/json',
         },
       );
-
+      print(url);
+      print(token);
       if (response.statusCode == 200) {
         final decodedBody = utf8.decode(response.bodyBytes);
         final data = json.decode(decodedBody)['content'] as List;
@@ -90,6 +93,13 @@ class _IndividualPageState extends State<IndividualPage> {
           }
         });
       } else {
+        if (response.statusCode == 401) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+          return;
+        }
         throw Exception('Failed to load data: ${response.statusCode}');
       }
     } catch (e) {
@@ -111,7 +121,7 @@ class _IndividualPageState extends State<IndividualPage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://10.10.25.239:8087/?inn=$inn'),
+        Uri.parse('$apiUrl/inn/?inn=$inn'),
         headers: {
           'accept': '*/*',
           'Authorization': 'Bearer $token',
@@ -120,7 +130,7 @@ class _IndividualPageState extends State<IndividualPage> {
 
       final decodedResponse = utf8.decode(response.bodyBytes);
       final data = json.decode(decodedResponse);
-
+      print(data);
       if (response.statusCode == 200) {
         // Successful response
         setState(() {
@@ -244,6 +254,19 @@ class _IndividualPageState extends State<IndividualPage> {
     return Scaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
       appBar: CupertinoNavigationBar(
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(builder: (context) => BusinessPage()),
+                  (Route<dynamic> route) => false,
+            );
+          },
+          child: Icon(
+            CupertinoIcons.back,
+            color: Colors.black,
+          ),
+        ),
         middle: Text(
           'Регистрация',
           style: TextStyle(
@@ -361,8 +384,12 @@ class _IndividualPageState extends State<IndividualPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: Colors.black),
           keyboardType: TextInputType.number, // Restrict to number input
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
@@ -405,6 +432,10 @@ class _IndividualPageState extends State<IndividualPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(
             fontSize: 16,
@@ -444,8 +475,12 @@ class _IndividualPageState extends State<IndividualPage> {
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
+          style: TextStyle(fontSize: 16, color: Colors.black),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             border: Border.all(color: CupertinoColors.inactiveGray),
@@ -456,46 +491,51 @@ class _IndividualPageState extends State<IndividualPage> {
       ],
     );
   }
-  String _getRegistrationTypeString() {
-    switch (widget.registrationType) {
-      case 1:
-        return "Физ. лицо";
-      case 2:
-        return "Юр. лицо";
-      case 3:
-        return "ИП";
-      default:
-        return "Не выбран";
-    }
-  }
-  Widget _buildNumberField(String label, TextEditingController controller, {bool requiredField = false}) {
+
+  Widget _buildNumberField(
+      String label,
+      TextEditingController controller, {
+        bool requiredField = false,
+      }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         RichText(
           text: TextSpan(
             text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.black, // Label text in black
+            ),
             children: requiredField
                 ? [
               TextSpan(
                 text: ' *',
-                style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 20),
+                style: TextStyle(
+                  color: CupertinoColors.destructiveRed,
+                  fontSize: 20,
+                ),
               ),
             ]
                 : [],
           ),
         ),
-        //SizedBox(height: 6),
         SizedBox(height: 8),
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
-          keyboardType: TextInputType.number, // Restrict to number input
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.black, // User input text color
+          ),
+          keyboardType: TextInputType.number,
           inputFormatters: [
-            // Optional: Format input to only allow digits
             FilteringTextInputFormatter.digitsOnly,
           ],
           decoration: BoxDecoration(
@@ -503,7 +543,6 @@ class _IndividualPageState extends State<IndividualPage> {
             border: Border.all(color: CupertinoColors.inactiveGray),
           ),
         ),
-        // Display a star next to label if the field is required
         SizedBox(height: 6),
       ],
     );
@@ -525,7 +564,7 @@ class _IndividualPageState extends State<IndividualPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
+            color: Colors.black, // changed from grey
           ),
         ),
         SizedBox(height: 8),
@@ -534,20 +573,28 @@ class _IndividualPageState extends State<IndividualPage> {
           items: options.map((option) {
             return DropdownMenuItem<String>(
               value: option['id'],
-              child: Text(option['name'] ?? 'N/A'),
+              child: Text(
+                option['name'] ?? 'N/A',
+                style: TextStyle(color: Colors.black), // text in dropdown
+              ),
             );
           }).toList(),
           value: selectedValue,
-          hint: Text("Выберите $label"), // Russian translation
-          searchHint: Text("Искать $label"), // Russian translation
+          hint: Text(
+            "Выберите $label",
+            style: TextStyle(color: Colors.black), // hint text
+          ),
+          searchHint: Text(
+            "Искать $label",
+            style: TextStyle(color: Colors.black), // search hint text
+          ),
           onChanged: onChanged,
           isExpanded: true,
           displayClearIcon: false,
-          style: TextStyle(fontSize: 14, color: Colors.black87),
+          style: TextStyle(fontSize: 14, color: Colors.black), // selected item text
           menuBackgroundColor: Colors.grey.shade50,
           icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
           searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
-            // Custom search function
             List<int> matchedIndexes = [];
             for (int i = 0; i < items.length; i++) {
               final item = items[i].value ?? '';
@@ -559,7 +606,8 @@ class _IndividualPageState extends State<IndividualPage> {
             return matchedIndexes;
           },
           searchInputDecoration: InputDecoration(
-            hintText: "Введите для поиска", // Russian translation
+            hintText: "Введите для поиска",
+            hintStyle: TextStyle(color: Colors.black), // search box hint text
             border: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -569,18 +617,15 @@ class _IndividualPageState extends State<IndividualPage> {
           ),
           closeButton: TextButton(
             onPressed: () {
-              // Implement close action
-              Navigator.pop(context); // Close the dropdown
+              Navigator.pop(context);
             },
             child: Text(
-              "Закрыть", // Russian for "Close"
-              style: TextStyle(color: Colors.blueAccent),
+              "Закрыть",
+              style: TextStyle(color: Colors.black), // close button text
             ),
           ),
         ),
       ],
     );
   }
-
-
 }

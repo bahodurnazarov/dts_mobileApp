@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/config.dart';
+import '../../auth/businessPage.dart';
+import '../../auth/login_page.dart';
 import '../../auth/refresh_token.dart';
 
 
@@ -90,7 +92,11 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
           };
         }).toList();
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
+        // await refreshAccessToken(context);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
         return _fetchDropdownOptions(url);
       } else {
         throw Exception('Failed to fetch data. Status code: ${response.statusCode}');
@@ -126,7 +132,7 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
       }
 
       final response = await http.get(
-        Uri.parse('http://10.10.25.239:8088/?inn=$inn'),
+        Uri.parse('$apiUrl/inn/?inn=$inn'),
         headers: {
           'accept': '*/*',
           'Authorization': 'Bearer $token',
@@ -174,6 +180,19 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
     return Scaffold(
       backgroundColor: CupertinoColors.systemGroupedBackground,
       appBar: CupertinoNavigationBar(
+        leading: GestureDetector(
+          onTap: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              CupertinoPageRoute(builder: (context) => BusinessPage()),
+                  (Route<dynamic> route) => false,
+            );
+          },
+          child: Icon(
+            CupertinoIcons.back,
+            color: Colors.black,
+          ),
+        ),
         middle: Text(
           'Регистрация',
           style: TextStyle(
@@ -277,6 +296,10 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           keyboardType: TextInputType.number, // Restrict to number input
@@ -321,6 +344,10 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(
             fontSize: 16,
@@ -360,6 +387,10 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           decoration: BoxDecoration(
@@ -396,6 +427,10 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
         CupertinoTextField(
           controller: controller,
           placeholder: 'Введите $label',
+          placeholderStyle: TextStyle(
+            color: Colors.black38, // Make placeholder text black
+            fontSize: 14,
+          ),
           padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           style: TextStyle(fontSize: 16),
           keyboardType: TextInputType.number,
@@ -430,7 +465,7 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
+            color: Colors.black, // changed from grey
           ),
         ),
         SizedBox(height: 8),
@@ -439,20 +474,28 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
           items: options.map((option) {
             return DropdownMenuItem<String>(
               value: option['id'],
-              child: Text(option['name'] ?? 'N/A'),
+              child: Text(
+                option['name'] ?? 'N/A',
+                style: TextStyle(color: Colors.black), // text in dropdown
+              ),
             );
           }).toList(),
           value: selectedValue,
-          hint: Text("Выберите $label"), // Russian translation
-          searchHint: Text("Искать $label"), // Russian translation
+          hint: Text(
+            "Выберите $label",
+            style: TextStyle(color: Colors.black), // hint text
+          ),
+          searchHint: Text(
+            "Искать $label",
+            style: TextStyle(color: Colors.black), // search hint text
+          ),
           onChanged: onChanged,
           isExpanded: true,
           displayClearIcon: false,
-          style: TextStyle(fontSize: 14, color: Colors.black87),
+          style: TextStyle(fontSize: 14, color: Colors.black), // selected item text
           menuBackgroundColor: Colors.grey.shade50,
           icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
           searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
-            // Custom search function
             List<int> matchedIndexes = [];
             for (int i = 0; i < items.length; i++) {
               final item = items[i].value ?? '';
@@ -464,7 +507,8 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
             return matchedIndexes;
           },
           searchInputDecoration: InputDecoration(
-            hintText: "Введите для поиска", // Russian translation
+            hintText: "Введите для поиска",
+            hintStyle: TextStyle(color: Colors.black), // search box hint text
             border: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.shade300),
             ),
@@ -474,12 +518,11 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
           ),
           closeButton: TextButton(
             onPressed: () {
-              // Implement close action
-              Navigator.pop(context); // Close the dropdown
+              Navigator.pop(context);
             },
             child: Text(
-              "Закрыть", // Russian for "Close"
-              style: TextStyle(color: Colors.blueAccent),
+              "Закрыть",
+              style: TextStyle(color: Colors.black), // close button text
             ),
           ),
         ),
@@ -493,18 +536,7 @@ class _EnterpreneurRegistrationPage extends State<EnterpreneurRegistrationPage> 
 
 
 
-  String _getRegistrationTypeString() {
-    switch (widget.registrationType) {
-      case 1:
-        return "Физ. лицо";
-      case 2:
-        return "Юр. лицо";
-      case 3:
-        return "ИП";
-      default:
-        return "Не выбран";
-    }
-  }
+
   // Function to show success alert
   void _showSuccessAlert() {
     showDialog(

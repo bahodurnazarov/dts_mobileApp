@@ -119,7 +119,9 @@ class _ProfilePageState extends State<ProfilePage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => UserTypeHandler(Url, globalUserType),
+                        //builder: (context) => UserTypeHandler(Url, globalUserType),
+                        builder: (context) => BusinessPage(),
+
                       ),
                     );
                   } catch (e) {

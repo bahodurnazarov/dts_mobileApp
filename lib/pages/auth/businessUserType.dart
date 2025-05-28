@@ -10,6 +10,7 @@ import '../home_page.dart';
 import '../profile/registerProfile/individualEntrepreneur_register.dart';
 import '../profile/registerProfile/individual_register.dart';
 import '../profile/registerProfile/legalEntity_register.dart';
+import 'login_page.dart';
 
 class BusinessUserType extends StatefulWidget {
   final String apiUrl;
@@ -81,7 +82,8 @@ class _BusinessUserType extends State<BusinessUserType> {
             );
             break;
           case 2:
-            Navigator.pushReplacement(
+          // For case 2 (LegalRegistrationPage)
+            Navigator.push(
               context,
               CupertinoPageRoute(
                 builder: (context) => LegalRegistrationPage(registrationType: 2),
@@ -89,7 +91,7 @@ class _BusinessUserType extends State<BusinessUserType> {
             );
             break;
           case 3:
-            Navigator.pushReplacement(
+            Navigator.push(
               context,
               CupertinoPageRoute(
                 builder: (context) => EnterpreneurRegistrationPage(registrationType: 3),
@@ -100,8 +102,13 @@ class _BusinessUserType extends State<BusinessUserType> {
             throw Exception('Invalid user type');
         }
       } else if (response.statusCode == 401) {
-        await refreshAccessToken(context);
-        return _checkUserType(url);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+        return;
+        // await refreshAccessToken(context);
+        // return _checkUserType(url);
         _showUnauthorizedError();
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');
