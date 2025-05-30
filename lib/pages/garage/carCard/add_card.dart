@@ -1,132 +1,77 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:dts/config/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:search_choices/search_choices.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../config/globals.dart';
 import '../../auth/businessPage.dart';
 import '../../auth/privateAccountPage.dart';
-import '../../auth/refresh_token.dart';
-import '../../home_page.dart';
-import '../garage_tab.dart';
-
-class AddCarCard extends StatelessWidget {
-  final VoidCallback onAddCar;
-
-  const AddCarCard({required this.onAddCar});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: GestureDetector(
-        onTap: onAddCar,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 12,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.only(bottom: 12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(25),
-                child: Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.transparent, // Ensures no image for this card
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 15,
-              left: 15,
-              right: 15,
-              child: Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.8),
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add,
-                      size: 50,
-                      color: Colors.blueAccent,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Добавить машину',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blueAccent,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class AddCarPage extends StatefulWidget {
+  const AddCarPage({super.key});
+
   @override
-  _AddCarPageState createState() => _AddCarPageState();
+  State<AddCarPage> createState() => _AddCarPageState();
 }
 
 class _AddCarPageState extends State<AddCarPage> {
-  // Controllers for form fields
-  TextEditingController vinController = TextEditingController();
-  TextEditingController modelController = TextEditingController();
-  TextEditingController yearController = TextEditingController();
-  TextEditingController carNumberController = TextEditingController();
-  TextEditingController capacityController = TextEditingController();
-  TextEditingController maxCapacityController = TextEditingController();
-  TextEditingController heightController = TextEditingController();
-  TextEditingController weightController = TextEditingController();
-  TextEditingController lengthController = TextEditingController();
-  TextEditingController imeiGpsTrackerController = TextEditingController();
-  TextEditingController simGpsTrackerController = TextEditingController();
+  //region Controllers
+  final TextEditingController _vinController = TextEditingController();
+  final TextEditingController _modelController = TextEditingController();
+  final TextEditingController _yearController = TextEditingController();
+  final TextEditingController _carNumberController = TextEditingController();
+  final TextEditingController _capacityController = TextEditingController();
+  final TextEditingController _maxCapacityController = TextEditingController();
+  final TextEditingController _heightController = TextEditingController();
+  final TextEditingController _weightController = TextEditingController();
+  final TextEditingController _lengthController = TextEditingController();
+  final TextEditingController _imeiGpsTrackerController = TextEditingController();
+  final TextEditingController _simGpsTrackerController = TextEditingController();
+  final TextEditingController _registrationCertificateSeriesController = TextEditingController();
+  final TextEditingController _bodyNoController = TextEditingController();
+  final TextEditingController _bodyTypeController = TextEditingController();
+  final TextEditingController _carBrandController = TextEditingController();
+  final TextEditingController _chassisNoController = TextEditingController();
+  final TextEditingController _engineCapacityController = TextEditingController();
+  final TextEditingController _enginePowerHpController = TextEditingController();
+  final TextEditingController _enginePowerKwController = TextEditingController();
+  final TextEditingController _engineTypeController = TextEditingController();
+  final TextEditingController _maxWeightLadenController = TextEditingController();
+  final TextEditingController _maxWeightUnladenController = TextEditingController();
+  final TextEditingController _numberOfSeatsController = TextEditingController();
+  final TextEditingController _vehiclePassportController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _colorController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _ownerController = TextEditingController();
+  //endregion
 
-  List<Map<String, String>> transportViews = [];
-  List<Map<String, String>> transportTypes = [];
-  List<Map<String, String>> transportBrands = [];
-  List<Map<String, String>> transportFuels = [];
-  List<Map<String, String>> transportOwnerships = [];
-  List<Map<String, String>> transportOwnerTypes = [];
+  //region Dropdown Data
+  List<Map<String, String>> _transportViews = [];
+  List<Map<String, String>> _transportTypes = [];
+  List<Map<String, String>> _transportBrands = [];
+  List<Map<String, String>> _transportFuels = [];
+  List<Map<String, String>> _transportOwnerships = [];
+  List<Map<String, String>> _transportOwnerTypes = [];
+  //endregion
 
-  String? selectedTransportViewID;
-  String? selectedTransportTypeID;
-  String? selectedTransportBrandID;
-  String? selectedTransportFuelID;
-  String? selectedTransportOwnershipID;
-  String? selectedTransportOwnerTypeID;
+  //region Selected Dropdown Values
+  String? _selectedTransportViewID;
+  String? _selectedTransportTypeID;
+  String? _selectedTransportBrandID;
+  String? _selectedTransportFuelID;
+  String? _selectedTransportOwnershipID;
+  String? _selectedTransportOwnerTypeID;
+  //endregion
+
+  //region Loading States
+  bool _isLoading = false;
+  bool _isFetchingCarData = false;
+  //endregion
 
   @override
   void initState() {
@@ -134,251 +79,516 @@ class _AddCarPageState extends State<AddCarPage> {
     _loadDropdownData();
   }
 
-  Future<void> _loadDropdownData() async {
-    transportViews = await _fetchDropdownOptions('$apiUrl/transportview/');
-    transportTypes = await _fetchDropdownOptions('$apiUrl/transporttype/');
-    transportBrands = await _fetchDropdownOptions('$apiUrl/transportbrand/?page=0&size=3000&sort=id');
-    transportFuels = await _fetchDropdownOptions('$apiUrl/transportfuel/');
-    transportOwnerships = await _fetchDropdownOptions('$apiUrl/transportownership/');
-    transportOwnerTypes = await _fetchDropdownOptions('$apiUrl/transportownertype/');
-    setState(() {});
+  @override
+  void dispose() {
+    // Dispose all controllers to prevent memory leaks
+    _vinController.dispose();
+    _modelController.dispose();
+    _yearController.dispose();
+    _carNumberController.dispose();
+    _capacityController.dispose();
+    _maxCapacityController.dispose();
+    _heightController.dispose();
+    _weightController.dispose();
+    _lengthController.dispose();
+    _imeiGpsTrackerController.dispose();
+    _simGpsTrackerController.dispose();
+    _registrationCertificateSeriesController.dispose();
+    _bodyNoController.dispose();
+    _bodyTypeController.dispose();
+    _carBrandController.dispose();
+    _chassisNoController.dispose();
+    _engineCapacityController.dispose();
+    _enginePowerHpController.dispose();
+    _enginePowerKwController.dispose();
+    _engineTypeController.dispose();
+    _maxWeightLadenController.dispose();
+    _maxWeightUnladenController.dispose();
+    _numberOfSeatsController.dispose();
+    _vehiclePassportController.dispose();
+    _phoneController.dispose();
+    _colorController.dispose();
+    _typeController.dispose();
+    _ownerController.dispose();
+    super.dispose();
   }
 
-  Future<List<Map<String, String>>> _fetchDropdownOptions(String url) async {
-    try {
-      // Retrieve the token from SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? token = prefs.getString('auth_token');
+  Future<void> _loadDropdownData() async {
+    if (_isLoading) return; // Prevent multiple calls
 
-      if (token == null || token.isEmpty) {
-        throw Exception('Token not found in cache');
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null) {
+        _showErrorAlert('Authentication token not found. Please log in again.');
+        return;
       }
-      // Make the API request with the token and a timeout
-      final response = await http
-          .get(
+
+      await Future.wait([
+        _fetchDropdownOptions('$apiUrl/transportview/', token).then((data) => _transportViews = data),
+        _fetchDropdownOptions('$apiUrl/transporttype/', token, keyMap: {'id': 'id', 'name': 'type'},).then((data) => _transportTypes = data),
+        _fetchDropdownOptions('$apiUrl/transportbrand/?page=0&size=3000&sort=id', token).then((data) => _transportBrands = data),
+        _fetchDropdownOptions('$apiUrl/transportfuel/', token).then((data) => _transportFuels = data),
+        _fetchDropdownOptions('$apiUrl/transportownership/', token).then((data) => _transportOwnerships = data),
+        _fetchDropdownOptions('$apiUrl/transportownertype/', token).then((data) => _transportOwnerTypes = data),
+      ]);
+    } on Exception catch (e) {
+      _showErrorAlert('Failed to load dropdown data: ${e.toString()}');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchCarData() async {
+    if (_carNumberController.text.isEmpty || _registrationCertificateSeriesController.text.isEmpty) {
+      _showErrorAlert('Пожалуйста, введите номер машины и серию свидетельства о регистрации');
+      return;
+    }
+
+    setState(() {
+      _isFetchingCarData = true;
+    });
+
+    try {
+      final token = await _getAuthToken();
+      if (token == null) {
+        throw Exception('Authentication token not found.');
+      }
+
+      final uri = Uri.parse(
+          '$apiUrl/transport/check/bridge?licensePlate=${_carNumberController.text}&registrationCertificateSeries=${Uri.encodeComponent(_registrationCertificateSeriesController.text)}');
+
+      final response = await http.get(
+        uri,
+        headers: {
+          'accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 15)); // Increased timeout
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+        final carData = jsonResponse['content'];
+        _updateCarFields(carData);
+      } else {
+        final Map<String, dynamic> jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+        _showErrorAlert(jsonResponse['message'] ?? 'Не удалось получить данные автомобиля');
+      }
+    } on TimeoutException {
+      _showErrorAlert('Request timed out. Please check your internet connection or try again.');
+    } catch (error) {
+      debugPrint('Error fetching car data: $error');
+      _showErrorAlert('Произошла ошибка при получении данных автомобиля.');
+    } finally {
+      setState(() {
+        _isFetchingCarData = false;
+      });
+    }
+  }
+
+  void _updateCarFields(Map<String, dynamic> carData) {
+    setState(() {
+      _vinController.text = carData['Vin'] ?? '';
+      _carBrandController.text = carData['CarBrand'] ?? '';
+      _modelController.text = carData['CarModel'] ?? '';
+      _yearController.text = carData['YearOfManufacture']?.toString() ?? ''; // Ensure string
+      _bodyNoController.text = carData['BodyNo'] ?? '';
+      _bodyTypeController.text = carData['BodyType'] ?? '';
+      _chassisNoController.text = carData['ChassisNo'] ?? '';
+      _engineCapacityController.text = carData['EngineCapacity']?.toString() ?? '';
+      _enginePowerHpController.text = carData['EnginePowerHp']?.toString() ?? '';
+      _enginePowerKwController.text = carData['EnginePowerKw']?.toString() ?? '';
+      _engineTypeController.text = carData['EngineType'] ?? '';
+      _maxWeightLadenController.text = carData['MaxWeightLaden']?.toString() ?? '';
+      _maxWeightUnladenController.text = carData['MaxWeightUnladen']?.toString() ?? '';
+      _numberOfSeatsController.text = carData['NumberOfSeats']?.toString() ?? '';
+      _vehiclePassportController.text = carData['VehiclePassport'] ?? '';
+      _phoneController.text = carData['Phone'] ?? '';
+      _colorController.text = carData['Color'] ?? '';
+      _typeController.text = carData['Type'] ?? '';
+      _ownerController.text = carData['Owner'] ?? '';
+    });
+  }
+
+  Future<List<Map<String, String>>> _fetchDropdownOptions(String url, String token, {Map<String, String> keyMap = const {'id': 'id', 'name': 'name'}}) async {
+    try {
+      final response = await http.get(
         Uri.parse(url),
         headers: {
-          'Authorization': 'Bearer $token', // Include the token here
+          'Authorization': 'Bearer $token',
           'accept': 'application/json',
         },
-      )
-          .timeout(
-        const Duration(seconds: 10), // Set the timeout duration
-        onTimeout: () {
-          throw TimeoutException('Request to $url timed out');
-        },
-      );
+      ).timeout(const Duration(seconds: 10));
 
-      print(globalUserType);
       if (response.statusCode == 200) {
-        final decodedBody = utf8.decode(response.bodyBytes);
-        final Map<String, dynamic> jsonResponse = json.decode(decodedBody);
-
-        // Log the parsed JSON for debugging
-
-        final data = jsonResponse['content'] as List?;
+        final Map<String, dynamic> jsonResponse = json.decode(utf8.decode(response.bodyBytes));
+        final List<dynamic>? data = jsonResponse['content'];
 
         if (data == null) {
-          throw Exception('No content found in response');
+          debugPrint('No content found for $url');
+          return [];
         }
 
-        // Determine how to map the response based on the URL
-        if (url.contains('transporttype')) {
-          return data
-              .map((item) => {
-            'id': item['id'].toString(),
-            'name': item['type'].toString(), // Use 'type' for transportTypes
-          })
-              .toList();
-        } else {
-          return data
-              .map((item) => {
-            'id': item['id'].toString(),
-            'name': item['name'].toString(), // Default mapping
-          })
-              .toList();
-        }
+        return data
+            .map((item) => {
+          'id': item[keyMap['id']]?.toString() ?? '',
+          'name': item[keyMap['name']]?.toString() ?? item['type']?.toString() ?? 'N/A',
+        })
+            .toList();
       } else {
-        throw Exception('Failed to load data. Status code: ${response.statusCode}');
+        debugPrint('Failed to load dropdown options: ${response.statusCode}');
+        return [];
       }
-    } on TimeoutException catch (e) {
-      print('Timeout error: $e');
-      return []; // Return an empty list on timeout
-    } catch (e) {
-      print('Error fetching dropdown options: $e');
+    } on TimeoutException {
+      debugPrint('Request timeout for $url');
+      return [];
+    } on Exception catch (e) {
+      debugPrint('Error fetching dropdown options: $e');
       return [];
     }
   }
 
-
+  /// Submits the car data to the API.
   Future<void> _submitCar() async {
-    // Retrieve the token from SharedPreferences
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('auth_token');
+    // Form validation
+    if (_selectedTransportViewID == null ||
+        _selectedTransportTypeID == null ||
+        _selectedTransportBrandID == null ||
+        _selectedTransportFuelID == null ||
+        _selectedTransportOwnershipID == null ||
+        _selectedTransportOwnerTypeID == null) {
+      _showErrorAlert('Пожалуйста, заполните все обязательные поля');
+      return;
+    }
 
-    final url = Uri.parse('$apiUrl/transport/');
-    final headers = {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $token', // Include the token here
-      'Content-Type': 'application/json',
-    };
-
-    final body = json.encode({
-      "vinCod": vinController.text,
-      "transportViewID": selectedTransportViewID,
-      "transportTypeID": selectedTransportTypeID,
-      "transportBrandID": selectedTransportBrandID,
-      "model": modelController.text,
-      "year": yearController.text,
-      "carNumber": carNumberController.text,
-      "transportFuelID": selectedTransportFuelID,
-      "capacity": capacityController.text,
-      "maxCapacity": maxCapacityController.text,
-      "height": heightController.text,
-      "weight": weightController.text,
-      "longth": lengthController.text,
-      "imeiGpsTracker": imeiGpsTrackerController.text,
-      "simGpsTracker": simGpsTrackerController.text,
-      "transportOwnerShipID": selectedTransportOwnershipID,
-      "transportOwnerTypeID": selectedTransportOwnerTypeID,
+    setState(() {
+      _isLoading = true;
     });
 
     try {
-      final response = await http.post(url, headers: headers, body: body);
+      final token = await _getAuthToken();
+      if (token == null) {
+        throw Exception('Authentication token not found.');
+      }
 
-      // Check the HTTP status code
+      final url = Uri.parse('$apiUrl/transport/');
+      final headers = {
+        'accept': 'application/json',
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      };
+
+      final body = json.encode({
+        "transportViewID": _selectedTransportViewID,
+        "transportTypeID": _selectedTransportTypeID,
+        "imeiGpsTracker": _imeiGpsTrackerController.text,
+        "simGpsTracker": _simGpsTrackerController.text,
+        "transportOwnerShipID": _selectedTransportOwnershipID,
+        "transportOwnerTypeID": _selectedTransportOwnerTypeID,
+        "LicensePlate": _carNumberController.text,
+        "BodyNo": _bodyNoController.text,
+        "BodyType": _bodyTypeController.text,
+        "CarBrand": _carBrandController.text,
+        "CarModel": _modelController.text,
+        "ChassisNo": _chassisNoController.text,
+        "RegistrationCertificateSeries": _registrationCertificateSeriesController.text,
+        "EngineCapacity": _engineCapacityController.text,
+        "EnginePowerHp": _enginePowerHpController.text,
+        "EnginePowerKw": _enginePowerKwController.text,
+        "EngineType": _engineTypeController.text,
+        "MaxWeightLaden": _maxWeightLadenController.text,
+        "MaxWeightUnladen": _maxWeightUnladenController.text,
+        "NumberOfSeats": _numberOfSeatsController.text,
+        "VehiclePassport": _vehiclePassportController.text,
+        "YearOfManufacture": _yearController.text,
+        "Phone": _phoneController.text,
+        "Vin": _vinController.text,
+        "Color": _colorController.text,
+        "Type": _typeController.text,
+        "Owner": _ownerController.text,
+      });
+
+      final response = await http.post(url, headers: headers, body: body).timeout(const Duration(seconds: 15));
+      print(body);
+
       if (response.statusCode == 201) {
         final responseData = json.decode(utf8.decode(response.bodyBytes));
         final transportId = responseData['content']['id'];
-
         await _addTransportToUser(transportId);
-
-        _showSuccessAlert();
+        _showSuccessAlert('Машина успешно добавлена!');
+        if (mounted) Navigator.pop(context); // Go back after success
       } else {
-        // Handle non-201 responses
         final responseData = json.decode(utf8.decode(response.bodyBytes));
-        print(response.body);
-        _showErrorAlert(responseData['content']);
+        print(responseData['content']);
+        _showErrorAlert(responseData['content'] ?? 'Ошибка при добавлении машины.');
       }
+    } on TimeoutException {
+      _showErrorAlert('Request timed out. Please check your internet connection or try again.');
     } catch (error) {
-      // Handle any other error
-      print(error);
-      _showErrorAlert('Произошла непредвиденная ошибка');
+      debugPrint('Error submitting car: $error');
+      _showErrorAlert('Произошла непредвиденная ошибка при добавлении машины.');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
-
+  /// Adds the newly created transport to the user's profile.
   Future<void> _addTransportToUser(String transportId) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('auth_token');
+    final token = await _getAuthToken();
+    if (token == null) {
+      throw Exception('Authentication token not found.');
+    }
 
-    String baseApiUrl = ''; // Initialize apiUrl with an empty string
-
-    // Set the appropriate API URL based on the userType
+    String? baseApiUrl;
+    // Determine the API URL based on globalUserType
     switch (globalUserType) {
-      case 1:
+      case 1: // Individual
         baseApiUrl = '$apiUrl/individual/$globalUserId/transport?transportId=$transportId';
         break;
-      case 3:
-        baseApiUrl = '$apiUrl/entrepreneur/$globalUserId/transport?transportId=$transportId';
+      case 3: // Entrepreneur
+        baseApiUrl = '$apiUrl/entrepreneur/transport?transportId=$transportId';
         break;
-      case 2:
-        baseApiUrl = '$apiUrl/company/$globalUserId/transport?transportId=$transportId';
+      case 2: // Company
+        baseApiUrl = '$apiUrl/company/transport?transportId=$transportId';
         break;
-      case 0: // EDIT2
-      // Get the account type from SharedPreferences or widget parameter
+      case 0: // Special handling for type 0, likely for initial setup
         final String accountType = await SharedPreferences.getInstance()
             .then((prefs) => prefs.getString('accountType') ?? 'private');
 
-        // Or if you have access to a type variable from the widget:
-        // final String accountType = widget.type;
-
-        await SharedPreferences.getInstance().then((prefs) =>
-            prefs.setString('accountType', accountType));
-
         if (accountType == 'private') {
-          print("Private account selected");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PrivateAccountPage(),
-            ),
-          );
+          debugPrint("Private account selected");
+          if (mounted) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const PrivateAccountPage()));
+          }
         } else if (accountType == 'business') {
-          print("Business account selected");
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => BusinessPage()),
-          );
+          debugPrint("Business account selected");
+          if (mounted) {
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => BusinessPage()));
+          }
         }
-        return; // Prevent further execution after navigation
+        return; // Prevent further execution
       default:
-        print("Invalid user type");
+        debugPrint("Invalid user type: $globalUserType");
+        _showErrorAlert("Неверный тип пользователя.");
         return;
     }
-    final individualUrl = Uri.parse(baseApiUrl);
-    final headers = {
-      'accept': 'application/json',
-      'Authorization': 'Bearer $token',
-    };
+
+    if (baseApiUrl == null) {
+      _showErrorAlert("Не удалось определить URL для добавления транспорта к пользователю.");
+      return;
+    }
 
     try {
-      // Send POST request
-      final response = await http.post(individualUrl, headers: headers);
-      final responseData = json.decode(utf8.decode(response.bodyBytes));
+      final response = await http.post(
+        Uri.parse(baseApiUrl),
+        headers: {
+          'accept': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201) {
-        print("Transport added successfully");
+        debugPrint("Transport added to user successfully");
       } else {
-        // Handle non-201 responses
-        print("Failed to add transport: ${response.body}");
-        _showErrorAlert(responseData['message'] ?? "Error occurred");
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
+        debugPrint("Failed to add transport to user: ${response.body}");
+        _showErrorAlert(responseData['message'] ?? "Ошибка при привязке машины к профилю.");
       }
+    } on TimeoutException {
+      _showErrorAlert('Request to add transport to user timed out.');
     } catch (error) {
-      // Handle any errors during the second request
-      print("Error during second request: $error");
-      _showErrorAlert("Произошла непредвиденная ошибка");
+      debugPrint("Error during adding transport to user: $error");
+      _showErrorAlert("Произошла непредвиденная ошибка при привязке машины к профилю.");
     }
   }
 
+  /// Retrieves the authentication token from shared preferences.
+  Future<String?> _getAuthToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('auth_token');
+  }
 
-  // Function to show success alert
-  void _showSuccessAlert() {
+  /// Displays a success alert dialog.
+  void _showSuccessAlert(String message) {
+    if (!mounted) return;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Успех'),
-        content: Text('Машина успешно добавлена!'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop(); // Close the dialog
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => HomePage()), // Navigate to GarageTab
-                    (route) => false, // Remove all previous routes
-              );
-            },
-            child: Text('OK'),
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Успех'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Displays an error alert dialog.
+  void _showErrorAlert(String message) {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Ошибка'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildTextField(
+      String label,
+      TextEditingController controller, {
+        bool readOnly = false,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextField(
+        controller: controller,
+        readOnly: readOnly,
+        style: TextStyle(
+          color: readOnly ? Colors.grey.shade600 : Colors.black87,
+          fontSize: 16.0,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            color: Colors.grey.shade600,
+            fontSize: 16.0,
           ),
-        ],
+          floatingLabelStyle: const TextStyle(
+            color: Colors.blueAccent,
+            fontSize: 18.0,
+          ),
+          border: _outlineInputBorder(),
+          enabledBorder: _outlineInputBorder(color: Colors.grey.shade400),
+          focusedBorder: _outlineInputBorder(
+            color: Colors.blueAccent,
+            width: 2.0,
+          ),
+          filled: true,
+          fillColor: readOnly ? Colors.grey.shade50 : Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 14.0,
+          ),
+        ),
+        cursorColor: Colors.blueAccent,
       ),
     );
   }
 
-  // Function to show error alert
-  void _showErrorAlert(String errorMessage) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Ошибка'),
-        content: Text(errorMessage),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop(); // Close the dialog
+  OutlineInputBorder _outlineInputBorder({
+    Color color = Colors.grey,
+    double width = 1.0,
+  }) {
+    return OutlineInputBorder(
+      borderRadius: BorderRadius.circular(8.0),
+      borderSide: BorderSide(
+        color: color,
+        width: width,
+      ),
+    );
+  }
+
+  /// Builds a dropdown with search functionality.
+  Widget _buildDropdownWithSearch(
+      String label,
+      List<Map<String, String>> options,
+      String? selectedValue,
+      ValueChanged<String?>? onChanged,
+      ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 14, // Smaller label for consistency
+              fontWeight: FontWeight.w500,
+              color: Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SearchChoices.single(
+            items: options.map((option) {
+              return DropdownMenuItem<String>(
+                value: option['id'],
+                child: Text(option['name'] ?? 'N/A'),
+              );
+            }).toList(),
+            value: selectedValue,
+            hint: Text(
+              "Выберите $label",
+              style: const TextStyle(color: Colors.black54),
+            ),
+            searchHint: Text(
+              "Искать $label",
+              style: const TextStyle(color: Colors.black54),
+            ),
+            onChanged: onChanged,
+            isExpanded: true,
+            displayClearIcon: false,
+            style: const TextStyle(fontSize: 16, color: Colors.black),
+            menuBackgroundColor: Colors.white,
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.blueAccent),
+            searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
+              final lowerCaseKeyword = keyword.toLowerCase();
+              final List<int> matchedIndexes = [];
+              for (int i = 0; i < items.length; i++) {
+                final itemValue = items[i].value;
+                if (itemValue != null) {
+                  final optionName = options.firstWhere(
+                        (o) => o['id'] == itemValue,
+                    orElse: () => {'name': ''}, // Provide a default if not found
+                  )['name'] ?? '';
+                  if (optionName.toLowerCase().contains(lowerCaseKeyword)) {
+                    matchedIndexes.add(i);
+                  }
+                }
+              }
+              return matchedIndexes;
             },
-            child: Text('OK'),
+            searchInputDecoration: InputDecoration(
+              hintText: "Введите для поиска",
+              hintStyle: const TextStyle(color: Colors.black54),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey.shade300),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Colors.blueAccent, width: 2.0),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            ),
+            closeButton: TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Закрыть", style: TextStyle(color: Colors.blueAccent)),
+            ),
           ),
         ],
       ),
@@ -388,200 +598,178 @@ class _AddCarPageState extends State<AddCarPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Set background color to white
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Добавить машину'),
-        backgroundColor: Colors.white, // Set background color to white
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Добавить машину',
+          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
       ),
-      body: Padding(
+      body: _isLoading && _transportViews.isEmpty // Only show full page loader if initial dropdowns are loading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: transportViews.isEmpty ||
-            transportTypes.isEmpty ||
-            transportBrands.isEmpty ||
-            transportFuels.isEmpty ||
-            transportOwnerships.isEmpty ||
-            transportOwnerTypes.isEmpty
-            ? Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-              _buildDropdownWithSearch('Тип транспорта', transportTypes, selectedTransportTypeID, (newValue) {
-                setState(() {
-                  selectedTransportTypeID = newValue;
-                });
-              }),
-
-              _buildTextField('VIN Код', vinController),
-              _buildTextField('Марка', modelController),
-              _buildTextField('Год выпуска', yearController),
-              _buildTextField('Номер машины', carNumberController),
-              _buildTextField('Емкость', capacityController),
-              _buildTextField('Макс. емкость', maxCapacityController),
-              _buildTextField('Высота', heightController),
-              _buildTextField('Вес', weightController),
-              _buildTextField('Длина', lengthController),
-              _buildTextField('IMEI GPS-трекера', imeiGpsTrackerController),
-              _buildTextField('SIM GPS-трекера', simGpsTrackerController),
-
-              _buildDropdownWithSearch('Вид транспорта', transportViews, selectedTransportViewID, (newValue) {
-                setState(() {
-                  selectedTransportViewID = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Бренд транспорта', transportBrands, selectedTransportBrandID, (newValue) {
-                setState(() {
-                  selectedTransportBrandID = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Тип топлива', transportFuels, selectedTransportFuelID, (newValue) {
-                setState(() {
-                  selectedTransportFuelID = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Право собственности', transportOwnerships, selectedTransportOwnershipID, (newValue) {
-                setState(() {
-                  selectedTransportOwnershipID = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Тип владельца', transportOwnerTypes, selectedTransportOwnerTypeID, (newValue) {
-                setState(() {
-                  selectedTransportOwnerTypeID = newValue;
-                });
-              }),
-
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _submitCar,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue, // Background color
-                  foregroundColor: Colors.white, // Text color
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12), // Rounded corners
-                  ),
-                  padding: EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0), // Padding for better button size
-                  elevation: 5, // Subtle shadow/elevation effect
-                  textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold), // Text style
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, // Stretch children
+          children: [
+            // Section for fetching car data
+            _buildTextField('Номер машины', _carNumberController),
+            _buildTextField('Серия свидетельства о регистрации', _registrationCertificateSeriesController),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              onPressed: _isFetchingCarData ? null : _fetchCarData,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: Text('Добавить машину'),
+                padding: const EdgeInsets.symmetric(vertical: 14.0),
+                elevation: 3,
+                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
-            ],
-          ),
+              icon: _isFetchingCarData
+                  ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+                  : const Icon(Icons.search),
+              label: Text(_isFetchingCarData ? 'Получение данных...' : 'Получить данные автомобиля'),
+            ),
+            const SizedBox(height: 30),
+            const Divider(),
+            const SizedBox(height: 20),
+
+            // Car Details Section
+
+            _buildTextField('Владелец', _ownerController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Телефон', _phoneController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('VIN Код', _vinController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Марка', _carBrandController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Год выпуска', _yearController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Номер кузова', _bodyNoController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Тип кузова', _bodyTypeController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Объем двигателя', _engineCapacityController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Тип двигателя', _engineTypeController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Количество мест', _numberOfSeatsController, readOnly: _isFetchingCarData),// not editable
+            _buildTextField('Тип', _typeController, readOnly: _isFetchingCarData), // not editable
+            _buildTextField('IMEI GPS-трекера', _imeiGpsTrackerController),// we can edit
+            _buildTextField('SIM GPS-трекера', _simGpsTrackerController), // we can edit
+
+            // Dropdowns Section
+            _buildDropdownWithSearch('Вид транспорта', _transportViews, _selectedTransportViewID, (newValue) {
+              setState(() {
+                _selectedTransportViewID = newValue;
+              });
+            }),
+            _buildDropdownWithSearch('Тип транспорта', _transportTypes, _selectedTransportTypeID, (newValue) {
+              setState(() {
+                _selectedTransportTypeID = newValue;
+              });
+            }),
+            _buildDropdownWithSearch('Бренд транспорта', _transportBrands, _selectedTransportBrandID, (newValue) {
+              setState(() {
+                _selectedTransportBrandID = newValue;
+              });
+            }),
+            _buildDropdownWithSearch('Тип топлива', _transportFuels, _selectedTransportFuelID, (newValue) {
+              setState(() {
+                _selectedTransportFuelID = newValue;
+              });
+            }),
+            _buildDropdownWithSearch('Право собственности', _transportOwnerships, _selectedTransportOwnershipID, (newValue) {
+              setState(() {
+                _selectedTransportOwnershipID = newValue;
+              });
+            }),
+            _buildDropdownWithSearch('Тип владельца', _transportOwnerTypes, _selectedTransportOwnerTypeID, (newValue) {
+              setState(() {
+                _selectedTransportOwnerTypeID = newValue;
+              });
+            }),
+
+            const SizedBox(height: 30),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _submitCar,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
+                elevation: 5,
+                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              child: _isLoading
+                  ? const CircularProgressIndicator(color: Colors.white)
+                  : const Text('Добавить машину'),
+            ),
+            const SizedBox(height: 20),
+          ],
         ),
       ),
     );
   }
 
-
-  Widget _buildDropdownWithSearch(
-      String label,
-      List<Map<String, String>> options,
-      String? selectedValue,
-      Function(String?)? onChanged,
-      ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.grey.shade800,
-          ),
-        ),
-        SizedBox(height: 8),
-        // SearchChoices with custom filtering logic
-        SearchChoices.single(
-          items: options.map((option) {
-            return DropdownMenuItem<String>(
-              value: option['id'],
-              child: Text(option['name'] ?? 'N/A'),
-            );
-          }).toList(),
-          value: selectedValue,
-          hint: Text("Выберите $label"), // Russian translation
-          searchHint: Text("Искать $label"), // Russian translation
-          onChanged: onChanged,
-          isExpanded: true,
-          displayClearIcon: false,
-          style: TextStyle(fontSize: 14, color: Colors.black87),
-          menuBackgroundColor: Colors.grey.shade50,
-          icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-          searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
-            // Custom search function
-            List<int> matchedIndexes = [];
-            for (int i = 0; i < items.length; i++) {
-              final item = items[i].value ?? '';
-              final optionName = options.firstWhere((o) => o['id'] == item)['name'] ?? '';
-              if (optionName.toLowerCase().contains(keyword.toLowerCase())) {
-                matchedIndexes.add(i);
-              }
-            }
-            return matchedIndexes;
-          },
-          searchInputDecoration: InputDecoration(
-            hintText: "Введите для поиска", // Russian translation
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueAccent),
-            ),
-          ),
-          closeButton: TextButton(
-            onPressed: () {
-              // Implement close action
-              Navigator.pop(context); // Close the dropdown
-            },
+  Widget _buildCupertinoTextField({
+    required TextEditingController controller,
+    required String label,
+    bool isRequired = false,
+    bool isDisabled = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? formatters,
+    Function(String)? onChanged,
+  }) {
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          Expanded(
             child: Text(
-              "Закрыть", // Russian for "Close"
-              style: TextStyle(color: Colors.blueAccent),
+              '$label${isRequired ? ' *' : ''}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal, // Ensures regular font
+                decoration: TextDecoration.none,
+                color: isDisabled
+                    ? CupertinoColors.tertiaryLabel
+                    : CupertinoColors.label,
+              ),
             ),
           ),
-        ),
-      ],
-    );
-  }
+          Expanded(
+            flex: 2,
+            child: CupertinoTextField(
+              controller: controller,
+              placeholder: 'Введите $label',
+              placeholderStyle: TextStyle(
+                color: Colors.black,
+              ),
+              style: TextStyle(
+                fontSize: 16,  color: Colors.black, // ← Force black text color
 
-  Widget _buildTextField(String label, TextEditingController controller) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: TextFormField(
-        controller: controller,
-        style: TextStyle(color: Colors.black, fontSize: 16),  // Modern font style
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(color: Colors.grey[600]),  // Lighter label text
-          hintText: label,  // Add hint text for a better UX
-          hintStyle: TextStyle(color: Colors.grey[400]),  // Gray hint text
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.blue, width: 2),  // Focused border with color
-            borderRadius: BorderRadius.circular(12),  // Rounded corners
+              ),
+              enabled: !isDisabled,
+              keyboardType: keyboardType,
+              inputFormatters: formatters,
+              onChanged: onChanged,
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+              decoration: BoxDecoration(
+                color: Colors.transparent, // ✅ Removes default background
+              ),
+            ),
           ),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.grey[300]!, width: 1),  // Regular border color
-            borderRadius: BorderRadius.circular(12),  // Rounded corners
-          ),
-          errorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red, width: 2),  // Red border when error
-            borderRadius: BorderRadius.circular(12),  // Rounded corners
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.red, width: 2),  // Error border when focused
-            borderRadius: BorderRadius.circular(12),  // Rounded corners
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 15.0),
-        ),
+        ],
       ),
     );
   }
-
 }

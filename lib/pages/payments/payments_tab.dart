@@ -25,7 +25,13 @@ class _PaymentsTabState extends State<PaymentsTab> {
     return Scaffold(
       backgroundColor: _darkMode ? Colors.black : Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Платежи', style: TextStyle(fontSize: 24)),
+        title: const Text(
+          'Платежи',
+          style: TextStyle(
+            fontSize: 24,
+            color: Colors.black, // Set text color to black
+          ),
+        ),
         centerTitle: true,
         backgroundColor: _darkMode ? Colors.black : Colors.white,
         elevation: 1,

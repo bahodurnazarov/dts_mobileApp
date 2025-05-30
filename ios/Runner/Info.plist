@@ -24,6 +24,8 @@
 	<string>????</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
     <false/>
+    <key>UIStatusBarStyle</key>
+    <string>UIStatusBarStyleLightContent</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>

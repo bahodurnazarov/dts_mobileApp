@@ -56,7 +56,8 @@ class _BusinessUserType extends State<BusinessUserType> {
 
       final data = json.decode(response.body);
       if (response.statusCode == 200) {
-        if (data['content'] != null) {
+
+          if (data['content'] != null) {
           final content = json.decode(utf8.decode(response.bodyBytes)); // Decoding the response body to get content
           if (content['content'] != null && content['content'] is Map<String, dynamic>) {
             setState(() {
@@ -71,16 +72,8 @@ class _BusinessUserType extends State<BusinessUserType> {
           }
         }
     } else if (response.statusCode == 404) {
-        // Use switch-case to navigate based on userType\\
+       // Use switch-case to navigate based on userType\\
         switch (widget.userType) {
-          case 1:
-            Navigator.pushReplacement(
-              context,
-              CupertinoPageRoute(
-                builder: (context) => IndividualPage(registrationType: 1),
-              ),
-            );
-            break;
           case 2:
           // For case 2 (LegalRegistrationPage)
             Navigator.push(
@@ -164,139 +157,160 @@ class _BusinessUserType extends State<BusinessUserType> {
 
   @override
   Widget build(BuildContext context) {
-    // Show loading screen if data is still being fetched
     if (isLoading) {
       return CupertinoPageScaffold(
+        backgroundColor: CupertinoColors.extraLightBackgroundGray, // Light background
         navigationBar: CupertinoNavigationBar(
+          backgroundColor: CupertinoColors.extraLightBackgroundGray, // Matching light nav bar
           middle: Text(
             'Проверка пользователя',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: CupertinoColors.black,
+              color: Colors.black87,
+              decoration: TextDecoration.none, // Explicitly remove underline
             ),
           ),
         ),
         child: Center(
-          child: CupertinoActivityIndicator(radius: 18),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CupertinoActivityIndicator(radius: 18),
+              const SizedBox(height: 20),
+              Text(
+                'Загрузка...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  decoration: TextDecoration.none, // No underline
+                ),
+              ),
+            ],
+          ),
         ),
       );
     }
 
-    // If userInfo is available, show user information with animation
     if (userInfo != null) {
-      Future.delayed(Duration(milliseconds: 2300), () {
-        if (mounted) { // Check if the widget is still part of the tree
+      Future.delayed(const Duration(milliseconds: 2200), () {
+        if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             CupertinoPageRoute(builder: (context) => HomePage()),
-                (Route<dynamic> route) => false, // Removes all previous routes
+                (Route<dynamic> route) => false,
           );
         }
       });
 
-
-
       return WillPopScope(
-        onWillPop: () async => false, // Prevent swipe back gesture
+        onWillPop: () async => false,
         child: CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: Colors.grey[50],
           child: Center(
-            child: FadeTransition(
-              opacity: AlwaysStoppedAnimation(1.0),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24.0),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.white,
-                        borderRadius: BorderRadius.circular(30.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CupertinoColors.systemGrey.withOpacity(0.2),
-                            blurRadius: 25.0,
-                            offset: Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: Duration(seconds: 1),
-                            builder: (context, opacity, child) {
-                              return Opacity(
-                                opacity: opacity,
-                                child: Text(
-                                  'Добро пожаловать',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.none,
-                                    color: CupertinoColors.black,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 10),
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: Duration(seconds: 1),
-                            builder: (context, opacity, child) {
-                              return Opacity(
-                                opacity: opacity,
-                                child: Text(
-                                  '${userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано'}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    decoration: TextDecoration.none,
-                                    color: CupertinoColors.black,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          SizedBox(height: 15),
-                          AnimatedScale(
-                            scale: 1.1,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            child: Icon(
-                              CupertinoIcons.person_fill,
-                              size: 90.0,
-                              color: CupertinoColors.activeBlue,
-                            ),
-                          ),
-                          SizedBox(height: 20),
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: Duration(seconds: 1),
-                            builder: (context, opacity, child) {
-                              return Opacity(
-                                opacity: opacity,
-                                child: Text(
-                                  'ИНН: ${userInfo!['tin'] ?? 'Не указано'}',
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    decoration: TextDecoration.none,
-                                    color: CupertinoColors.systemGrey,
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Modern white card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Добро пожаловать',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.none,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // User info row
+                        Row(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                CupertinoIcons.person_circle_fill,
+                                size: 36,
+                                color: Colors.blue[600],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.grey[900],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'ИНН: ${userInfo!['tin'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Progress indicator
+                        SizedBox(
+                          width: double.infinity,
+                          child: LinearProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[400]!),
+                            backgroundColor: Colors.blue.withOpacity(0.1),
+                            minHeight: 4,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Перенаправляем...',
+                          style: TextStyle(
+                            fontSize: 14,
+                            decoration: TextDecoration.none,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
@@ -304,51 +318,93 @@ class _BusinessUserType extends State<BusinessUserType> {
       );
     }
 
-    // If userInfo is not found or an error occurred, show error screen with animation
+    // Error state
     return WillPopScope(
-      onWillPop: () async => false, // Prevent swipe back gesture
+      onWillPop: () async => false,
       child: CupertinoPageScaffold(
-        backgroundColor: CupertinoColors.systemGroupedBackground,
-        navigationBar: CupertinoNavigationBar(
+        backgroundColor: Colors.grey[50],
+        navigationBar: const CupertinoNavigationBar(
           middle: Text(
             'Ошибка',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: CupertinoColors.black,
+              color: Colors.black87,
             ),
           ),
         ),
         child: Center(
-          child: TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: Duration(seconds: 1),
-            builder: (context, opacity, child) {
-              return Opacity(
-                opacity: opacity,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      CupertinoIcons.exclamationmark_circle_fill,
-                      size: 90.0,
-                      color: CupertinoColors.destructiveRed,
-                    ),
-                    SizedBox(height: 20),
-                    Text(
-                      'Не удалось загааарузить информацию.',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.w500,
-                        decoration: TextDecoration.none,
-                        color: CupertinoColors.destructiveRed,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    CupertinoIcons.exclamationmark_circle_fill,
+                    size: 50,
+                    color: Colors.red[600],
+                  ),
                 ),
-              );
-            },
+                const SizedBox(height: 24),
+                const Text(
+                  'Не удалось загрузить информацию',
+                  style: TextStyle(
+                    fontSize: 22,
+                    decoration: TextDecoration.none,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Попробуйте войти снова',
+                  style: TextStyle(
+                    fontSize: 16,
+                    decoration: TextDecoration.none,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.red,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: Colors.red.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    onPressed: () {
+                      // Add retry logic
+                    },
+                    child: const Text(
+                      'Попробовать снова',
+                      style: TextStyle(
+                        fontSize: 16,
+                        decoration: TextDecoration.none,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

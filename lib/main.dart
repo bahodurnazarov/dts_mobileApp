@@ -19,23 +19,6 @@ import 'logging_service.dart';
 void main() async {
   // Initialize logging
   WidgetsFlutterBinding.ensureInitialized();
-  await LoggingService.initialize();
-
-  // Catch and log all errors
-  FlutterError.onError = (details) {
-    LoggingService.log('Flutter error: ${details.exception}', level: Level.error);
-    if (details.stack != null) {
-      LoggingService.log('Stack trace: ${details.stack}', level: Level.error);
-    }
-  };
-
-  // Catch and log Dart errors
-  PlatformDispatcher.instance.onError = (error, stack) {
-    LoggingService.log('Dart error: $error', level: Level.error);
-    LoggingService.log('Stack trace: $stack', level: Level.error);
-    return true;
-  };
-
   runApp(MyApp());
 }
 

@@ -1,15 +1,10 @@
-import 'package:dts/pages/auth/businessUserType.dart';
-import 'package:dts/pages/home_page.dart';
-import 'package:dts/pages/profile/registerProfile/register_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../config/config.dart';
 import '../../config/globals.dart';
-import '../auth/businessPage.dart';
+import '../auth/accountType.dart';
 import '../auth/login_page.dart';
-import '../auth/privateAccountPage.dart';
-import 'QRScanner.dart';
 import 'settings/faq_page.dart';
 import 'settings/settings_page.dart';
 import 'settings/support_page.dart';
@@ -21,23 +16,40 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   @override
+  void initState() {
+    super.initState();
+    // Set status bar icons to dark for Android
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle.dark.copyWith(statusBarColor: Colors.transparent),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: const Text(
-          'Профиль',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark, // Dark icons for light background
+      child: Scaffold(
+        backgroundColor: CupertinoColors.extraLightBackgroundGray,
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(44),
+          child: CupertinoNavigationBar(
+            middle: Text(
+              'Профиль',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            backgroundColor: CupertinoColors.white,
+            // border: Border(
+            //   bottom: BorderSide(
+            //     color: CupertinoColors.inactiveGray,
+            //     width: 0.5,
+            //   ),
+            // ),
           ),
         ),
-        centerTitle: true,
-        automaticallyImplyLeading: false,
-      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -47,110 +59,33 @@ class _ProfilePageState extends State<ProfilePage> {
               // User Info Card - Modernized
               GestureDetector(
                 // First, make sure the onTap handler is async
-                onTap: () async {  // Add async here
-                  String Url;
-
-                  try {
-                    switch (globalUserType) {
-                      case 1:
-                        final prefs = await SharedPreferences.getInstance();
-                        final accountType = prefs.getString('accountType');
-
-                        if (accountType == 'private') {
-                          print("Private account selected");
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PrivateAccountPage(),
-                            ),
-                          );
-                          return;
-                        } else if (accountType == 'business') {
-                          print("Business account selected");
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => BusinessPage()),
-                          );
-                          return;
-                        } else {
-                          Url = '$apiUrl/individual/check/';
-                          // Continue to UserTypeHandler if no account type set
-                        }
-                        break;
-
-                      case 2:
-                        Url = '$apiUrl/company';
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString('accountType', 'business');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BusinessUserType(Url, globalUserType),
-                          ),
-                        );
-                        return;
-
-                      case 3:
-                        Url = '$apiUrl/entrepreneur';
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString('accountType', 'business');
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => BusinessUserType(Url, globalUserType),
-                          ),
-                        );
-                        return;
-
-                      case 0:
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => HomePage(),
-                          ),
-                        );
-                        return;
-
-                      default:
-                        throw Exception("Invalid user type");
-                    }
-
-                    // Only reached for case 1 when no account type is set
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        //builder: (context) => UserTypeHandler(Url, globalUserType),
-                        builder: (context) => BusinessPage(),
-
-                      ),
-                    );
-                  } catch (e) {
-                    print('Error in profile tap handler: $e');
-                  }
-                },
                 child: Container(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.black54, Colors.black54],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.5),
-                        blurRadius: 8,
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 16,
                         offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Row(
                     children: [
-                      Icon(
-                        CupertinoIcons.person_circle_fill,
-                        size: 60,
-                        color: Colors.white,
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          CupertinoIcons.person_circle_fill,
+                          size: 36,
+                          color: Colors.blue[600],
+                        ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
@@ -161,20 +96,20 @@ class _ProfilePageState extends State<ProfilePage> {
                               globalIndividualName.isNotEmpty
                                   ? globalIndividualName
                                   : 'Выберите тип пользователя',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[900],
                               ),
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 6),
                             Text(
                               globalTIN.isNotEmpty
                                   ? 'ИНН: $globalTIN'
                                   : 'ИНН: N/A',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white70,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey[600],
                               ),
                             ),
                           ],
@@ -185,55 +120,48 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const SizedBox(height: 20),
-
-              // put this qr code on the center and translate text to Russian
-              // Add the QR code icon here, after GestureDetector
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => QRCodeScannerPage()),
-                      );
-
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            CupertinoIcons.qrcode,
-                            size: 40,
-                            color: Colors.black,
-                          ),
-                          const SizedBox(width: 16),
-                          Text(
-                            'Scan QR Code',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ],
+// Switch Account Button
+              Container(
+                width: double.infinity,
+                margin: EdgeInsets.symmetric(horizontal: 4),
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.blue,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(
+                        color: Colors.blue.withOpacity(0.2),
+                        width: 1,
                       ),
                     ),
+                    padding: EdgeInsets.symmetric(vertical: 16),
                   ),
-                ],
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AccountTypeSelection(),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(CupertinoIcons.arrow_2_circlepath, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'Сменить аккаунт',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-
               const SizedBox(height: 20),
 
               // Settings Section
@@ -312,6 +240,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
       ),
+        ),
     );
   }
 

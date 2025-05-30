@@ -1,12 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class DirectoryTab extends StatelessWidget {
   final List<Category> categories = [
     Category(
       title: 'Правила дорожного движения',
-      description: 'Общие правила для всех участников дорожного движения.',
+      description: 'Общие правила для всех участников дорожного движения',
       icon: CupertinoIcons.book,
+      color: Colors.indigo,
       details: [
         '1. Водитель обязан соблюдать установленные знаки и разметку.',
         '2. Уступайте дорогу пешеходам на пешеходных переходах.',
@@ -22,8 +24,9 @@ class DirectoryTab extends StatelessWidget {
     ),
     Category(
       title: 'Дорожные знаки: Предупреждающие',
-      description: 'Знаки, предупреждающие о возможной опасности.',
+      description: 'Знаки, предупреждающие о возможной опасности',
       icon: CupertinoIcons.exclamationmark_triangle,
+      color: Colors.amber,
       details: [
         '1. Знак "Крутой поворот" предупреждает о резких поворотах.',
         '2. Знак "Неровная дорога" предупреждает о выбоинах или ухабах.',
@@ -37,8 +40,9 @@ class DirectoryTab extends StatelessWidget {
     ),
     Category(
       title: 'Дорожные знаки: Информационные',
-      description: 'Знаки, предоставляющие информацию водителям.',
+      description: 'Знаки, предоставляющие информацию водителям',
       icon: CupertinoIcons.info_circle,
+      color: Colors.blue,
       details: [
         '1. Знак "Парковка" показывает место для парковки.',
         '2. Знак "Пункт питания" указывает на наличие кафе или ресторана.',
@@ -50,8 +54,9 @@ class DirectoryTab extends StatelessWidget {
     ),
     Category(
       title: 'Дорожные знаки: Запрещающие',
-      description: 'Знаки, указывающие на запреты и ограничения.',
+      description: 'Знаки, указывающие на запреты и ограничения',
       icon: CupertinoIcons.xmark_circle,
+      color: Colors.red,
       details: [
         '1. Знак "Движение запрещено" указывает на запрет въезда.',
         '2. Знак "Обгон запрещен" ограничивает обгон транспортных средств.',
@@ -64,8 +69,9 @@ class DirectoryTab extends StatelessWidget {
     ),
     Category(
       title: 'Дорожные знаки: Обязательные',
-      description: 'Знаки, указывающие на обязательные действия.',
+      description: 'Знаки, указывающие на обязательные действия',
       icon: CupertinoIcons.arrow_right,
+      color: Colors.green,
       details: [
         '1. Знак "Движение прямо" указывает на обязательное направление.',
         '2. Знак "Круговое движение" указывает на въезд в круг.',
@@ -76,8 +82,9 @@ class DirectoryTab extends StatelessWidget {
     ),
     Category(
       title: 'Дорожные знаки: Приоритетные',
-      description: 'Знаки, устанавливающие приоритеты движения.',
+      description: 'Знаки, устанавливающие приоритеты движения',
       icon: CupertinoIcons.arrow_up_arrow_down,
+      color: Colors.purple,
       details: [
         '1. Знак "Главная дорога" указывает на приоритет движения.',
         '2. Знак "Уступи дорогу" требует пропустить транспорт с главной дороги.',
@@ -91,98 +98,116 @@ class DirectoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade200, Colors.blue.shade500],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      backgroundColor: CupertinoColors.systemGroupedBackground,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(44),
+        child: CupertinoNavigationBar(
+          middle: Text(
+            'Дорожные правила',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+              color: Colors.black,
+            ),
           ),
+          backgroundColor: CupertinoColors.systemGroupedBackground,
+          // border: Border(
+          //   bottom: BorderSide(
+          //     color: CupertinoColors.inactiveGray,
+          //     width: 0.5,
+          //   ),
+          // ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-          child: ListView.builder(
-            itemCount: categories.length,
-            itemBuilder: (context, index) {
-              final category = categories[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          CategoryDetailsPage(category: category),
-                    ),
-                  );
-                },
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 5,
-                  margin: const EdgeInsets.symmetric(vertical: 10.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      gradient: LinearGradient(
-                        colors: [Colors.white, Colors.blue.shade50],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.blue.shade100,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.all(12.0),
-                            child: Icon(
-                              category.icon,
-                              size: 30,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                          const SizedBox(width: 16.0),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  category.title,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 8.0),
-                                Text(
-                                  category.description,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Icon(
-                            CupertinoIcons.forward,
-                            color: Colors.grey,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
+      ),
+      body: SafeArea(
+        child: ListView.separated(
+          padding: const EdgeInsets.all(20),
+          itemCount: categories.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return CategoryCard(category: category);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class CategoryCard extends StatelessWidget {
+  final Category category;
+
+  const CategoryCard({Key? key, required this.category}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(16),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CategoryDetailsPage(category: category),
           ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: category.color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                category.icon,
+                color: category.color,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    category.title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    category.description,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.grey[400],
+            ),
+          ],
         ),
       ),
     );
@@ -198,64 +223,92 @@ class CategoryDetailsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text(category.title), // Assuming your Category class has a title field
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.blue.shade200, Colors.blue.shade500],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      backgroundColor: CupertinoColors.extraLightBackgroundGray,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(44),
+        child: CupertinoNavigationBar(
+          middle: Text(
+            category.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              color: Colors.black,
+            ),
+          ),
+          backgroundColor: CupertinoColors.white,
+          border: Border(
+            bottom: BorderSide(
+              color: CupertinoColors.inactiveGray,
+              width: 0.5,
+            ),
+          ),
+          leading: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => Navigator.pop(context),
+            child: const Icon(
+              CupertinoIcons.back,
+              size: 26,
+              color: Colors.black,
             ),
           ),
         ),
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade200, Colors.blue.shade500],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
-          child: ListView.builder(
-            itemCount: category.details.length,
-            itemBuilder: (context, index) {
-              final detail = category.details[index];
-              return Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                elevation: 5,
-                margin: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    gradient: LinearGradient(
-                      colors: [Colors.white, Colors.blue.shade50],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+      body: SafeArea(
+        child: ListView.separated(
+          padding: const EdgeInsets.all(20),
+          itemCount: category.details.length,
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
+          itemBuilder: (context, index) {
+            final detail = category.details[index];
+            return Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: CupertinoColors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: category.color.withOpacity(0.2),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '${index + 1}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: category.color,
+                        ),
+                      ),
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
+                  const SizedBox(width: 12),
+                  Expanded(
                     child: Text(
                       detail,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 15,
+                        height: 1.4,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
@@ -266,6 +319,7 @@ class Category {
   final String title;
   final String description;
   final IconData icon;
+  final Color color;
   final List<String> details;
 
   Category({
@@ -273,5 +327,6 @@ class Category {
     required this.description,
     required this.icon,
     required this.details,
+    required this.color,
   });
 }

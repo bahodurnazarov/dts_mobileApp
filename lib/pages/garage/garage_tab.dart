@@ -13,6 +13,7 @@ import '../licency/LicensePage.dart' as licency ;
 import 'carCard/add_card.dart';
 import 'carCard/app_bar.dart';
 import 'carCard/car_card.dart';
+import 'carCard/card.dart';
 import 'info/info_card.dart';
 
 class GarageTab extends StatefulWidget {

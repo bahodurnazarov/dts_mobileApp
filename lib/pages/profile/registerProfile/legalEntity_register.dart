@@ -189,7 +189,7 @@ import '../../auth/refresh_token.dart';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: CupertinoColors.extraLightBackgroundGray,
       appBar: CupertinoNavigationBar(
         leading: GestureDetector(
           onTap: () {
@@ -221,64 +221,93 @@ import '../../auth/refresh_token.dart';
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Text(
-              //   'Тип регистрации: ${_getRegistrationTypeString()}',
-              //   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-              // ),
-              // SizedBox(height: 32),
+              // Cupertino-style sections
+              _buildCupertinoSection([
+                _buildCupertinoTextField(
+                  controller: tinController,
+                  label: 'ИНН',
+                  isRequired: true,
+                  keyboardType: TextInputType.number,
+                  formatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (value) {
+                    if (value.length >= 7) _fetchNameFromInn(value);
+                  },
+                ),
+                _buildCupertinoTextField(
+                  controller: nameController,
+                  label: 'Название',
+                  isRequired: true,
+                  isDisabled: _isNameFieldDisabled,
+                ),
+                _buildCupertinoTextField(
+                  controller: einController,
+                  label: 'ЕИН',
+                  isDisabled: _isNameFieldDisabled,
+                ),
+                _buildCupertinoTextField(
+                  controller: kppController,
+                  label: 'КПП',
+                ),
+              ]),
 
-              // Text fields for user input
-              _buildInnField('ИНН', tinController, requiredField: true),
-              _buildInnTextField('Название', nameController, requiredField: true),
-              _buildInnTextField('ЕИН', einController),
-              _buildTextField('КПП', kppController),
-              _buildTextField('Адрес', addressController),
-              _buildTextField('Дом/Кв', officeController),
-              _buildTextField('Широта', latitudeController),
-              _buildTextField('Долгота', longitudeController),
-              _buildNumberField('Номер телефона', usernameController, requiredField: true),
+              SizedBox(height: 24),
+
+              // Address Section
+              _buildCupertinoSection([
+                _buildCupertinoTextField(
+                  controller: addressController,
+                  label: 'Адрес',
+                ),
+                _buildCupertinoTextField(
+                  controller: officeController,
+                  label: 'Дом/Кв',
+                ),
+              ]),
+
+              SizedBox(height: 24),
+
+              // Location Section
+              _buildCupertinoSection([
+                _buildCupertinoTextField(
+                  controller: countryController,
+                  label: 'Страна',
+                  isDisabled: _isNameFieldDisabled,
+                ),
+                _buildCupertinoPicker(
+                  label: 'Город',
+                  value: selectedCity,
+                  items: cities,
+                  onChanged: (newValue) => setState(() => selectedCity = newValue),
+                ),
+                _buildCupertinoPicker(
+                  label: 'Регион',
+                  value: selectedDistrict,
+                  items: districtes,
+                  onChanged: (newValue) => setState(() => selectedDistrict = newValue),
+                ),
+              ]),
+
+              SizedBox(height: 24),
+
+              // Company Details Section
+              _buildCupertinoSection([
+                _buildCupertinoPicker(
+                  label: 'Тип компании',
+                  value: selectedCompanyType,
+                  items: companyTypes,
+                  onChanged: (newValue) => setState(() => selectedCompanyType = newValue),
+                ),
+                _buildCupertinoPicker(
+                  label: 'Собственность',
+                  value: selectedProperty,
+                  items: properties,
+                  onChanged: (newValue) => setState(() => selectedProperty = newValue),
+                ),
+              ]),
 
               SizedBox(height: 32),
 
-              _buildInnTextField('Страна', countryController),
-
-              // // Dropdowns for registration
-              // _buildDropdownWithSearch('Страна', countries, selectedCountry, (newValue) {
-              //   setState(() {
-              //     selectedCountry = newValue;
-              //   });
-              // }),
-              _buildDropdownWithSearch('Город', cities, selectedCity, (newValue) {
-                setState(() {
-                  selectedCity = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Регион', districtes, selectedDistrict, (newValue) {
-                setState(() {
-                  selectedDistrict = newValue;
-                });
-              }),
-
-              _buildDropdownWithSearch('Тип компании', companyTypes, selectedCompanyType, (newValue) {
-                setState(() {
-                  selectedCompanyType = newValue;
-                });
-              }),
-              _buildDropdownWithSearch('Статус', activityStatuses, selectedActivityStatus, (newValue) {
-                setState(() {
-                  selectedActivityStatus = newValue;
-                });
-              }),
-              _buildDropdownWithSearch('Собственность', properties, selectedProperty, (newValue) {
-                setState(() {
-                  selectedProperty = newValue;
-                });
-              }),
-
-              SizedBox(height: 32),
-
-              // Submit Button
+              // Submit Button (Cupertino style)
               Center(
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
@@ -304,257 +333,210 @@ import '../../auth/refresh_token.dart';
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, {bool requiredField = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
-            children: requiredField
-                ? [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 20),
-              ),
-            ]
-                : [],
-          ),
-        ),
-        SizedBox(height: 8),
-        CupertinoTextField(
-          controller: controller,
-          placeholder: 'Введите $label',
-          placeholderStyle: TextStyle(
-            color: Colors.black38, // Make placeholder text black
-            fontSize: 14,
-          ),
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CupertinoColors.inactiveGray),
-          ),
-        ),
-        // Display a star next to label if the field is required
-        SizedBox(height: 6),
-      ],
+  Widget _buildCupertinoSection(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: children
+            .map((child) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: child,
+        ))
+            .expand((widget) => [widget, _buildDivider()])
+            .take(children.length * 2 - 1)
+            .toList(),
+      ),
     );
   }
 
-  Widget _buildNumberField(String label, TextEditingController controller, {bool requiredField = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
-            children: requiredField
-                ? [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 20),
-              ),
-            ]
-                : [],
-          ),
-        ),
-        SizedBox(height: 8),
-        CupertinoTextField(
-          controller: controller,
-          placeholder: 'Введите $label',
-          placeholderStyle: TextStyle(
-            color: Colors.black38, // Make placeholder text black
-            fontSize: 14,
-          ),
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
-          keyboardType: TextInputType.number, // Restrict to number input
-          inputFormatters: [
-            // Optional: Format input to only allow digits
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CupertinoColors.inactiveGray),
-          ),
-        ),
-        // Display a star next to label if the field is required
-        SizedBox(height: 6),
-      ],
+  Widget _buildDivider() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Divider(
+        height: 1,
+        thickness: 0.5,
+        color: CupertinoColors.separator,
+      ),
     );
   }
 
-  Widget _buildInnField(String label, TextEditingController controller, {bool requiredField = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
-            children: requiredField
-                ? [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 20),
-              ),
-            ]
-                : [],
-          ),
-        ),
-        SizedBox(height: 8),
-        CupertinoTextField(
-          controller: controller,
-          placeholder: 'Введите $label',
-          placeholderStyle: TextStyle(
-            color: Colors.black38, // Make placeholder text black
-            fontSize: 14,
-          ),
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(fontSize: 16),
-          keyboardType: TextInputType.number, // Restrict to number input
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-          onChanged: (value) {
-            if (value.length >= 9) {
-              // Call _fetchNameFromInn if the length exceeds 9
-              _fetchNameFromInn(value);
-            }
-          },
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CupertinoColors.inactiveGray),
-          ),
-        ),
-        SizedBox(height: 6),
-      ],
-    );
-  }
-
-  Widget _buildInnTextField(String label, TextEditingController controller, {bool requiredField = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        RichText(
-          text: TextSpan(
-            text: label,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black), // Set default color
-            children: requiredField
-                ? [
-              TextSpan(
-                text: ' *',
-                style: TextStyle(color: CupertinoColors.destructiveRed, fontSize: 20),
-              ),
-            ]
-                : [],
-          ),
-        ),
-        SizedBox(height: 8),
-        CupertinoTextField(
-          controller: controller,
-          placeholder: 'Введите $label',
-          placeholderStyle: TextStyle(
-            color: Colors.black38, // Make placeholder text black
-            fontSize: 14,
-          ),
-          padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          style: TextStyle(
-            fontSize: 16,
-            color: controller.text == 'Не найдено' ? Colors.red : Colors.black, // Check if text is 'Не найдено'
-          ),
-          readOnly: _isNameFieldDisabled, // Disable editing if the name is fetched
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: CupertinoColors.inactiveGray),
-          ),
-        ),
-        SizedBox(height: 6),
-      ],
-    );
-  }
-
-
-  Widget _buildDropdownWithSearch(
-      String label,
-      List<Map<String, String>> options,
-      String? selectedValue,
-      Function(String?)? onChanged,
-      ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black, // changed from grey
-          ),
-        ),
-        SizedBox(height: 8),
-        // SearchChoices with custom filtering logic
-        SearchChoices.single(
-          items: options.map((option) {
-            return DropdownMenuItem<String>(
-              value: option['id'],
-              child: Text(
-                option['name'] ?? 'N/A',
-                style: TextStyle(color: Colors.black), // text in dropdown
-              ),
-            );
-          }).toList(),
-          value: selectedValue,
-          hint: Text(
-            "Выберите $label",
-            style: TextStyle(color: Colors.black), // hint text
-          ),
-          searchHint: Text(
-            "Искать $label",
-            style: TextStyle(color: Colors.black), // search hint text
-          ),
-          onChanged: onChanged,
-          isExpanded: true,
-          displayClearIcon: false,
-          style: TextStyle(fontSize: 14, color: Colors.black), // selected item text
-          menuBackgroundColor: Colors.grey.shade50,
-          icon: Icon(Icons.arrow_drop_down, color: Colors.grey.shade600),
-          searchFn: (String keyword, List<DropdownMenuItem<String>> items) {
-            List<int> matchedIndexes = [];
-            for (int i = 0; i < items.length; i++) {
-              final item = items[i].value ?? '';
-              final optionName = options.firstWhere((o) => o['id'] == item)['name'] ?? '';
-              if (optionName.toLowerCase().contains(keyword.toLowerCase())) {
-                matchedIndexes.add(i);
-              }
-            }
-            return matchedIndexes;
-          },
-          searchInputDecoration: InputDecoration(
-            hintText: "Введите для поиска",
-            hintStyle: TextStyle(color: Colors.black), // search box hint text
-            border: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blueAccent),
-            ),
-          ),
-          closeButton: TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
+  Widget _buildCupertinoTextField({
+    required TextEditingController controller,
+    required String label,
+    bool isRequired = false,
+    bool isDisabled = false,
+    TextInputType? keyboardType,
+    List<TextInputFormatter>? formatters,
+    Function(String)? onChanged,
+  }) {
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          Expanded(
             child: Text(
-              "Закрыть",
-              style: TextStyle(color: Colors.black), // close button text
+              '$label${isRequired ? ' *' : ''}',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal, // Ensures regular font
+                decoration: TextDecoration.none,
+                color: isDisabled
+                    ? CupertinoColors.tertiaryLabel
+                    : CupertinoColors.label,
+              ),
             ),
           ),
-        ),
-      ],
+          Expanded(
+            flex: 2,
+            child: CupertinoTextField(
+              controller: controller,
+              placeholder: 'Введите $label',
+              placeholderStyle: TextStyle(
+                color: Colors.black,
+              ),
+              style: TextStyle(
+                fontSize: 16,  color: Colors.black, // ← Force black text color
+
+              ),
+              enabled: !isDisabled,
+              keyboardType: keyboardType,
+              inputFormatters: formatters,
+              onChanged: onChanged,
+              padding: EdgeInsets.symmetric(vertical: 12, horizontal: 0),
+              decoration: BoxDecoration(
+                color: Colors.transparent, // ✅ Removes default background
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildCupertinoPicker({
+    required String label,
+    required String? value,
+    required List<Map<String, String>> items,
+    required Function(String?) onChanged,
+  }) {
+    return SizedBox(
+      height: 44,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal, // Ensures regular font
+                decoration: TextDecoration.none,
+                color: CupertinoColors.label,
+              ),
+            ),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            flex: 2,
+            child: GestureDetector(
+              onTap: () {
+                showCupertinoModalPopup(
+                  context: context,
+                  builder: (_) => Container(
+                    height: 250,
+                    color: Colors.black, // ✅ Light gray background instead of white
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: CupertinoColors.systemGrey6,
+                            border: Border(
+                              bottom: BorderSide(
+                                color: CupertinoColors.separator,
+                                width: 0.5,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CupertinoButton(
+                                child: Text(
+                                  'Отмена',
+                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                              CupertinoButton(
+                                child: Text(
+                                  'Готово',
+                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
+                                ),
+                                onPressed: () => Navigator.pop(context),
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                              ),
+                            ],
+
+                          ),
+                        ),
+                        Expanded(
+                          child: CupertinoPicker(
+                            itemExtent: 32,
+                            backgroundColor: Colors.white,
+                            onSelectedItemChanged: (index) {
+                              onChanged(items[index]['id']);
+                            },
+                            children: items
+                                .map((item) => Center(
+                              child: Text(
+                                item['name'] ?? '',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Colors.black, // ✅ Force black text
+                                ),
+                              ),
+                            ))
+                                .toList(),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: DefaultTextStyle.merge(
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.normal,
+                    color: Colors.black, // Force black color
+                    decoration: TextDecoration.none,
+                  ),
+                  child: Text(
+                    value != null
+                        ? items.firstWhere(
+                          (item) => item['id'] == value,
+                      orElse: () => {'name': 'Выберите'},
+                    )['name']!
+                        : 'Выберите',
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Icon(
+            CupertinoIcons.forward,
+            size: 16,
+            color: CupertinoColors.black,
+          ),
+        ],
+      ),
     );
   }
 
@@ -583,9 +565,9 @@ import '../../auth/refresh_token.dart';
       ),
     );
   }
+
+
   Future<void> _submitRegistration() async {
-
-
     // Validate required fields
     if (nameController.text.isEmpty ||
         tinController.text.isEmpty ||
@@ -618,7 +600,6 @@ import '../../auth/refresh_token.dart';
 
     // Send request to the registration API
     final registrationData = {
-      "userType": widget.registrationType.toString(),
       "name": nameController.text,
       "tin": tinController.text,
       "ein": einController.text,
@@ -629,11 +610,7 @@ import '../../auth/refresh_token.dart';
       "office": officeController,
       "address": addressController.text,
       "companyTypeID": selectedCompanyType,
-      "activityStatusID": selectedActivityStatus,
-      "latitude": latitudeController.text,
-      "longitude": longitudeController.text,
       "propertyID": selectedProperty,
-      "username": usernameController.text,
     };
 
     final SharedPreferences prefs = await SharedPreferences.getInstance();

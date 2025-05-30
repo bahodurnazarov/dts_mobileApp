@@ -237,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
       }) {
     return CupertinoTextField(
       controller: controller,
-      placeholder: isDigitField ? '987-27-57-57' : placeholder,
+      placeholder: isDigitField ? 'Введите номер' : placeholder,
       placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
       padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
       prefix: Padding(

@@ -18,15 +18,19 @@ class CardListPage extends StatelessWidget {
       backgroundColor: Colors.white, // Set background color to white
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back, color: Colors.black), // Make back icon black
           onPressed: () {
             Navigator.pop(context); // Go back to the previous screen
           },
         ),
-        title: Text('Все автомобили(${carData.length})', ),
+        title: Text(
+          'Все автомобили(${carData.length})',
+          style: TextStyle(color: Colors.black), // Make title text black
+        ),
         backgroundColor: Colors.white, // Set background color to white
-// Show total number of cars
+        elevation: 0, // Optional: remove shadow for flat look
       ),
+
 
       body: Stack(
         children: [

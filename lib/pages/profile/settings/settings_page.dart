@@ -6,22 +6,35 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: CupertinoColors.extraLightBackgroundGray,
-      appBar: CupertinoNavigationBar(
-        middle: Text(
-          'Настройки',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(44),
+        child: CupertinoNavigationBar(
+          leading: CupertinoButton(
+            padding: EdgeInsets.zero,
+            onPressed: () => Navigator.pop(context),
+            child: Icon(
+              CupertinoIcons.left_chevron,
+              size: 26,
+              color: Colors.black, // ← Back button color
+            ),
+          ),
+          middle: Text(
+            'Настройки',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          backgroundColor: CupertinoColors.white,
+          border: Border(
+            bottom: BorderSide(color: CupertinoColors.inactiveGray, width: 0.5),
           ),
         ),
-        backgroundColor: CupertinoColors.white,
-        border: Border(bottom: BorderSide(color: CupertinoColors.inactiveGray, width: 0.5)),
       ),
       body: ListView(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         children: [
-          // Security Section
           _buildSettingCard(
             context,
             icon: CupertinoIcons.lock,
@@ -31,8 +44,6 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           SizedBox(height: 16),
-
-          // Notifications Section
           _buildSettingCard(
             context,
             icon: CupertinoIcons.bell,
@@ -42,8 +53,6 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           SizedBox(height: 16),
-
-          // Language Section
           _buildSettingCard(
             context,
             icon: CupertinoIcons.globe,
@@ -53,8 +62,6 @@ class SettingsPage extends StatelessWidget {
             },
           ),
           SizedBox(height: 16),
-
-          // About App Section
           _buildSettingCard(
             context,
             icon: CupertinoIcons.info_circle,

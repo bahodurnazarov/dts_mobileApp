@@ -7,6 +7,8 @@ import '../../config/config.dart';
 import '../../config/globals.dart';
 import '../home_page.dart';
 import '../profile/registerProfile/individual_register.dart';
+import 'accountType.dart';
+import 'login_page.dart';
 
 class PrivateAccountPage extends StatefulWidget {
   const PrivateAccountPage();
@@ -91,11 +93,16 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
         Navigator.pushReplacement(
           context,
           CupertinoPageRoute(
-            builder: (context) => IndividualPage(registrationType: 1),
+            builder: (context) => IndividualPage(),
           ),
         );
       } else if (response.statusCode == 401) {
-        _showUnauthorizedError();
+        //_showUnauthorizedError();
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+        return;
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');
       }
@@ -122,42 +129,45 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
     );
   }
 
-  void _showUnauthorizedError() {
-    showCupertinoDialog(
-      context: context,
-      builder: (context) => CupertinoAlertDialog(
-        title: const Text('Unauthorized', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Your session has expired or you are not authorized. Please log in again.'),
-        actions: [
-          CupertinoDialogAction(
-            child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w600)),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return CupertinoPageScaffold(
-        navigationBar: const CupertinoNavigationBar(
+        backgroundColor: CupertinoColors.extraLightBackgroundGray, // Light background
+        navigationBar: CupertinoNavigationBar(
+          backgroundColor: CupertinoColors.extraLightBackgroundGray, // Matching light nav bar
           middle: Text(
             'Проверка пользователя',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: CupertinoColors.black,
+              color: Colors.black87,
+              decoration: TextDecoration.none, // Explicitly remove underline
             ),
           ),
         ),
-        child: const Center(child: CupertinoActivityIndicator(radius: 18)),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CupertinoActivityIndicator(radius: 18),
+              const SizedBox(height: 20),
+              Text(
+                'Загрузка...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  decoration: TextDecoration.none, // No underline
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
 
     if (userInfo != null) {
-      Future.delayed(const Duration(milliseconds: 2300), () {
+      Future.delayed(const Duration(milliseconds: 2200), () {
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
@@ -170,95 +180,111 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
       return WillPopScope(
         onWillPop: () async => false,
         child: CupertinoPageScaffold(
-          backgroundColor: CupertinoColors.systemGroupedBackground,
+          backgroundColor: Colors.grey[50],
           child: Center(
-            child: FadeTransition(
-              opacity: const AlwaysStoppedAnimation(1.0),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24.0),
-                      decoration: BoxDecoration(
-                        color: CupertinoColors.white,
-                        borderRadius: BorderRadius.circular(30.0),
-                        boxShadow: [
-                          BoxShadow(
-                            color: CupertinoColors.systemGrey.withOpacity(0.2),
-                            blurRadius: 25.0,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: const Duration(seconds: 1),
-                            builder: (context, opacity, child) => Opacity(
-                              opacity: opacity,
-                              child: const Text(
-                                'Добро пожаловать',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.none,
-                                  color: CupertinoColors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: const Duration(seconds: 1),
-                            builder: (context, opacity, child) => Opacity(
-                              opacity: opacity,
-                              child: Text(
-                                userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  decoration: TextDecoration.none,
-                                  color: CupertinoColors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 15),
-                          const AnimatedScale(
-                            scale: 1.1,
-                            duration: Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                            child: Icon(
-                              CupertinoIcons.person_fill,
-                              size: 90.0,
-                              color: CupertinoColors.activeBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          TweenAnimationBuilder(
-                            tween: Tween<double>(begin: 0, end: 1),
-                            duration: const Duration(seconds: 1),
-                            builder: (context, opacity, child) => Opacity(
-                              opacity: opacity,
-                              child: Text(
-                                'ИНН: ${userInfo!['tin'] ?? 'Не указано'}',
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  decoration: TextDecoration.none,
-                                  color: CupertinoColors.systemGrey,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Modern white card
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Добро пожаловать',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.none,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // User info row
+                        Row(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withOpacity(0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                CupertinoIcons.person_circle_fill,
+                                size: 36,
+                                color: Colors.blue[600],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.grey[900],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'ИНН: ${userInfo!['tin'] ?? 'N/A'}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      decoration: TextDecoration.none,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Progress indicator
+                        SizedBox(
+                          width: double.infinity,
+                          child: LinearProgressIndicator(
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue[400]!),
+                            backgroundColor: Colors.blue.withOpacity(0.1),
+                            minHeight: 4,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Перенаправляем...',
+                          style: TextStyle(
+                            fontSize: 14,
+                            decoration: TextDecoration.none,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
             ),
           ),
@@ -266,46 +292,92 @@ class _PrivateAccountPage extends State<PrivateAccountPage> {
       );
     }
 
+    // Error state
     return WillPopScope(
       onWillPop: () async => false,
       child: CupertinoPageScaffold(
-        backgroundColor: CupertinoColors.systemGroupedBackground,
+        backgroundColor: Colors.grey[50],
         navigationBar: const CupertinoNavigationBar(
           middle: Text(
             'Ошибка',
             style: TextStyle(
-              fontWeight: FontWeight.bold,
+              fontWeight: FontWeight.w600,
               fontSize: 18,
-              color: CupertinoColors.black,
+              color: Colors.black87,
             ),
           ),
         ),
         child: Center(
-          child: TweenAnimationBuilder(
-            tween: Tween<double>(begin: 0, end: 1),
-            duration: const Duration(seconds: 1),
-            builder: (context, opacity, child) => Opacity(
-              opacity: opacity,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
                     CupertinoIcons.exclamationmark_circle_fill,
-                    size: 90.0,
-                    color: CupertinoColors.destructiveRed,
+                    size: 50,
+                    color: Colors.red[600],
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Не удалось загрузить информациюqqqq.',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w500,
-                      color: CupertinoColors.destructiveRed,
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'Не удалось загрузить информацию',
+                  style: TextStyle(
+                    fontSize: 22,
+                    decoration: TextDecoration.none,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Попробуйте войти снова',
+                  style: TextStyle(
+                    fontSize: 16,
+                    decoration: TextDecoration.none,
+                    color: Colors.grey[600],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.red,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: Colors.red.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    textAlign: TextAlign.center,
+                    onPressed: () {
+                      // Add retry logic
+                    },
+                    child: const Text(
+                      'Попробовать снова',
+                      style: TextStyle(
+                        fontSize: 16,
+                        decoration: TextDecoration.none,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

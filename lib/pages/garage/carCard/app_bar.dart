@@ -78,9 +78,6 @@ class AppBarContent extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
       );
-      // await refreshAccessToken(context);
-      //
-      // // Retry with fresh token
        return _fetchCars(context, isRetry: true);
     }
     else {

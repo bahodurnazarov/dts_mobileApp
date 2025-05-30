@@ -8,7 +8,7 @@ import 'businessUserType.dart';
 class BusinessPage extends StatelessWidget {
   final List<Map<String, String>> userTypes = [
     {
-      "id": "1",
+      "id": "4",
       "name": "Физическое лицо",
       "description": "Для физических лиц, которые хотят воспользоваться услугами без регистрации компании.",
     },
@@ -32,7 +32,7 @@ class BusinessPage extends StatelessWidget {
       Widget nextPage;
       // Navigate to the appropriate page based on user type
       switch (userType) {
-        case 1:
+        case 4:
           nextPage = BusinessHomePage();
           break;
         case 2:
