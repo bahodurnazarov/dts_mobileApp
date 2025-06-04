@@ -16,7 +16,6 @@ class GetCardPage extends StatefulWidget {
 
 class _GetCardPageState extends State<GetCardPage> {
   late Future<Map<String, dynamic>> cardData;
-
   final String flag = 'assets/tajikistan_flag.jpg';
 
   @override
@@ -29,6 +28,7 @@ class _GetCardPageState extends State<GetCardPage> {
     final url = '$apiUrl/transport/$cardId';
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('auth_token');
+    print(cardId);
 
     final response = await http.get(
       Uri.parse(url),
@@ -50,11 +50,16 @@ class _GetCardPageState extends State<GetCardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Информация о Транспорте'),
+        title: const Text(
+          'Информация о Транспорте',
+          style: TextStyle(color: Colors.black),
+        ),
         backgroundColor: Colors.white,
         centerTitle: true,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black), // This makes back icon black
       ),
+
       backgroundColor: Colors.white,
       body: FutureBuilder<Map<String, dynamic>>(
         future: cardData,
@@ -74,152 +79,160 @@ class _GetCardPageState extends State<GetCardPage> {
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 children: [
-                  Card(
-                    color: Colors.white,
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Hero(
-                            tag: 'car-${widget.cardId}',
-                            child: Center(
-                              child: Text(
-                                data['CarModel'] ?? 'Модель неизвестна',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Center(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.black, width: 1),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        '• ',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      Column(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius: BorderRadius.circular(4),
-                                            child: Image.asset(
-                                              flag,
-                                              width: 26,
-                                              height: 16,
-                                              fit: BoxFit.cover,
-                                            ),
-                                          ),
-                                          const Text(
-                                            'TJ',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        data['LicensePlate'] ?? 'Неизвестный номер',
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                      const Text(
-                                        ' •',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoRow('Тип транспорта:', data['transportType']?['type'], Icons.category),
-                          _buildInfoRow('Бренд:', data['transportBrand']?['name'], Icons.branding_watermark),
-                          _buildInfoRow('Год выпуска:', data['year'], Icons.calendar_today),
-                          _buildInfoRow('Топливо:', data['transportFuel']?['name'], Icons.local_gas_station),
-                          _buildInfoRow('Вместимость (тонны):', data['capacity'], Icons.line_weight),
-                          _buildInfoRow('Макс. пассажиры:', data['maxCapacity'], Icons.people),
-                          _buildInfoRow('Тип владельца:', data['transportOwnerType']?['name'], Icons.person),
-                          _buildInfoRow('VIN код:', data['vinCod'], Icons.qr_code),
-                          const Divider(height: 30, color: Colors.blue),
-                          const Text(
-                            'Размеры Транспорта',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blueGrey,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          _buildInfoRow('Длина:', '${data['longth'] ?? 'N/A'} мм', Icons.straighten),
-                          _buildInfoRow('Высота:', '${data['height'] ?? 'N/A'} мм', Icons.height),
-                          _buildInfoRow('Вес:', '${data['weight'] ?? 'N/A'} кг', Icons.fitness_center),
-                        ],
+                Card(
+                color: Colors.white,
+                elevation: 8,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Hero(
+                  tag: 'car-${widget.cardId}',
+                    child: Center(
+                      child: Text(
+                        data['CarModel'] ?? 'Модель неизвестна',
+                        style: const TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    onPressed: () => _deleteCar(widget.cardId),
-                    icon: const Icon(Icons.delete, color: Colors.white),
-                    label: const Text(
-                      'Удалить автомобиль',
-                      style: TextStyle(fontSize: 18, color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.black, width: 1),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Row(
+                          children: [
+                            const Text(
+                              '• ',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Column(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(4),
+                                  child: Image.asset(
+                                    flag,
+                                    width: 26,
+                                    height: 16,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                const Text(
+                                  'TJ',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 8),
+                        Row(
+                          children: [
+                            Text(
+                              data['LicensePlate'] ?? 'Неизвестный номер',
+                              style: const TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const Text(
+                              ' •',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
+                ),
+                const SizedBox(height: 10),
+                _buildInfoRow('Тип транспорта:', data['transportView']?['name'], Icons.category),
+                _buildInfoRow('Категория транспорта:', data['transportType']?['type'], Icons.category),
+                _buildInfoRow('Бренд:', data['CarBrand'], Icons.branding_watermark),
+                _buildInfoRow('Год выпуска:', data['YearOfManufacture'], Icons.calendar_today),
+                _buildInfoRow('Тип двигателя:', data['EngineType'], Icons.local_gas_station),
+                _buildInfoRow('Макс. грузоподъемность:', '${data['MaxWeightLaden']} кг', Icons.line_weight),
+                _buildInfoRow('Количество мест:', data['NumberOfSeats'], Icons.people),
+                _buildInfoRow('Тип владельца:', data['transportOwnerType']?['name'], Icons.person),
+                _buildInfoRow('Форма собственности:', data['transportOwnerShip']?['name'], Icons.business),
+                _buildInfoRow('VIN код:', data['Vin'], Icons.qr_code),
+                _buildInfoRow('Цвет:', data['Color'], Icons.color_lens),
+                _buildInfoRow('Тип кузова:', data['BodyType'], Icons.car_repair),
+                _buildInfoRow('Номер кузова:', data['BodyNo'], Icons.confirmation_number),
+                _buildInfoRow('Телефон:', data['Phone'], Icons.phone),
+                _buildInfoRow('Владелец:', data['Owner'], Icons.person_pin),
+                const Divider(height: 30, color: Colors.blue),
+                const Text(
+                  'Характеристики двигателя',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _buildInfoRow('Объем двигателя:', '${data['EngineCapacity']} см³', Icons.engineering),
+                _buildInfoRow('Мощность (л.с.):', data['EnginePowerHp'], Icons.electric_bolt),
+                _buildInfoRow('Мощность (кВт):', data['EnginePowerKw'], Icons.electric_bolt),
+                _buildInfoRow('Снаряженная масса:', '${data['MaxWeightUnladen']} кг', Icons.fitness_center),
                 ],
               ),
-            );
+            ),
+          ),
+          const SizedBox(height: 20),
+          // ElevatedButton.icon(
+          // onPressed: () => _deleteCar(widget.cardId),
+          // icon: const Icon(Icons.delete, color: Colors.white),
+          // label: const Text(
+          // 'Удалить автомобиль',
+          // style: TextStyle(fontSize: 18, color: Colors.white),
+          // ),
+          // style: ElevatedButton.styleFrom(
+          // backgroundColor: Colors.red,
+          // padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          // ),
+          // ),
+          ],
+          ),
+          );
           } else {
-            return const Center(child: Text('Данные не найдены'));
+          return const Center(child: Text('Данные не найдены'));
           }
         },
       ),
@@ -265,7 +278,7 @@ class _GetCardPageState extends State<GetCardPage> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
                 ),
                 const SizedBox(height: 5),
                 Text(

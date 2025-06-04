@@ -27,9 +27,6 @@ class CarCard extends StatelessWidget {
     final String transportType = carData['transportType']?['type'] ?? 'Unknown Type';
     final String carId = carData['id'] ?? '';
 
-
-    // Generate a random index to pick a car image
-
     final randomIndex = Random().nextInt(carImages.length);
     final randomCarImage = carImages[randomIndex];
 
@@ -47,149 +44,146 @@ class CarCard extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeInOut,
-          width: double.infinity, // Take up full width
-          height: 220.0, // Set a fixed height for the card
+          width: double.infinity,
+          height: 220.0,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
-              colors: [Colors.white, Colors.white], // Shades of white
+              colors: [Colors.white, Colors.white],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1), // Softer shadow
-                blurRadius: 12, // Smaller blur for inner shadow feel
-                offset: const Offset(4, 4), // Slightly subtle offset
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(4, 4),
               ),
               BoxShadow(
-                color: Colors.black.withOpacity(0.05), // Additional light shadow
-                blurRadius: 20, // Wider blur for ambient shadow
-                offset: const Offset(-4, -4), // Opposite direction for balance
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(-4, -4),
               ),
             ],
           ),
           child: Stack(
             children: [
-              // Background image from the random selection
+              // Background image
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30.0, vertical: 10.0),
                 child: ClipRRect(
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),  // Top left corner radius
-                    topRight: Radius.circular(20), // Top right corner radius
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
                   ),
                   child: Image.asset(
                     randomCarImage,
                     fit: BoxFit.cover,
-                    height: 140.0, // Reduced height for the image
+                    height: 140.0,
                     width: double.infinity,
                   ),
                 ),
               ),
 
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Name
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                        letterSpacing: 1.2,
-                      ),
+              // Car name (top left)
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  constraints: BoxConstraints(
+                    maxHeight: 60, // Limit height to prevent pushing content too far
+                  ),
+                  child: Text(
+                    name,
+                    maxLines: 2, // Allow up to 2 lines
+                    overflow: TextOverflow.ellipsis, // Show ... if still too long
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      letterSpacing: 1.2,
                     ),
-                    const SizedBox(height: 100),
-                    // Car Number with Flag
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.white, // Background color
-                          borderRadius: BorderRadius.circular(8), // Rounded corners
-                          border: Border.all(
-                            color: Colors.black, // Border color
-                            width: 1, // Border width
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.2), // Shadow color
-                              blurRadius: 8, // Shadow blur radius
-                              offset: const Offset(0, 4), // Shadow offset
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min, // Take only the necessary space
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            // Dots and Flag with Country Abbreviation
-                            Row(
-                              children: [
-                                const Text(
-                                  '• ', // Starting dot before the flag
-                                  style: TextStyle(
-                                    fontSize: 16, // Size of the dot
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Column(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(4), // Smooth edges
-                                      child: Image.asset(
-                                        flag,
-                                        width: 26,
-                                        height: 16,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                    // Country abbreviation under the flag
-                                    const Text(
-                                      'TJ',
-                                      style: TextStyle(
-                                        fontSize: 12, // Smaller font size for country abbreviation
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 8),
-                            // Car Number with Ending Dot
-                            Row(
-                              children: [
-                                Text(
-                                  carNumber,
-                                  style: const TextStyle(
-                                    fontSize: 28, // Car number font size
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                const Text(
-                                  ' •', // Ending dot after the car number
-                                  style: TextStyle(
-                                    fontSize: 16, // Size of the dot
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                  ),
+                ),
+              ),
+
+              // Car number plate (centered)
+              Positioned.fill(
+                top: 140, // Position below the image
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    margin: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
                       ),
-                    )
-                  ],
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          '• ',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                        Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.asset(
+                                flag,
+                                width: 26,
+                                height: 16,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const Text(
+                              'TJ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          carNumber,
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+                        const Text(
+                          ' •',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],

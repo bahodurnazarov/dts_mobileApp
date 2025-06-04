@@ -7,7 +7,6 @@ import '../../config/config.dart';
 import '../auth/businessPage.dart';
 import '../auth/login_page.dart';
 import '../auth/privateAccountPage.dart';
-import '../auth/refresh_token.dart';
 import '../lessons/lessons_page.dart';
 import '../licency/LicensePage.dart' as licency ;
 import 'carCard/add_card.dart';
@@ -166,7 +165,7 @@ class _GarageTabState extends State<GarageTab> {
             children: [
               _buildCarCardsSection(),
               SizedBox(height: 10),
-              if (globalUserType == 2 || globalUserType == 3) _buildButtonsSection(),
+              if (globalUserType == 2 ) _buildButtonsSection(),
               SizedBox(height: 6),
               _buildInfoCardsSection(),
             ],
@@ -287,7 +286,7 @@ class _GarageTabState extends State<GarageTab> {
                   child: InfoCard(
                     title: 'Штрафы',
                     icon: Icons.gavel,
-                    subtitle: '3 штрафы',
+                    subtitle: '',
                     duration: '',
                   ),
                 ),
@@ -307,7 +306,7 @@ class _GarageTabState extends State<GarageTab> {
                 InfoCard(
                   title: 'Тех. осмотр',
                   icon: Icons.build,
-                  subtitle: 'Годен до 2024',
+                  subtitle: '',
                   duration: '1 год',
                 ),
               ],

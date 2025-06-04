@@ -22,26 +22,26 @@ class _HomePageState extends State<HomePage> {
           items: [
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.car),
-              label: 'Гараж',
+            //  label: 'Гараж',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.creditcard),
-              label: 'Оплаты',
+              //label: 'Оплаты',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.map),
-              label: 'Навигатор',
+           //   label: 'Навигатор',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.book),
-              label: 'Справочник',
+              // label: 'Справочник',
             ),
             BottomNavigationBarItem(
               icon: GestureDetector(
-                onLongPress: () => _showSwitchAccountDialog(context),
+                // onLongPress: () => _showSwitchAccountDialog(context),
                 child: Icon(CupertinoIcons.profile_circled),
               ),
-              label: 'Профиль',
+              // label: 'Профиль',
             ),
             // s.odil.1986@gmail.com begajon46@gmail.com
           ],
@@ -68,92 +68,92 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  /// Show account switch dialog or action sheet
-  void _showSwitchAccountDialog(BuildContext context) {
-    showCupertinoModalPopup(
-      context: context,
-      builder: (BuildContext context) {
-        return CupertinoActionSheet(
-          title: const Text(
-            'Сменить аккаунт',
-            style: TextStyle(color: CupertinoColors.systemBlue),
-          ),
-          message: const Text(
-            'Выберите аккаунт для переключения:',
-            style: TextStyle(color: CupertinoColors.systemBlue),
-          ),
-          actions: [
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                globalUserType = 1; // Set globalUserType to 1 for 'Физическое лицо'
-                _switchToPrivateAccount();
-              },
-              child: const Text(
-                'Физическое лицо',
-                style: TextStyle(color: CupertinoColors.systemBlue),
-              ),
-            ),
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                globalUserType = 2; // Set globalUserType to 2 for 'Юридическое лицо'
-                _switchToBusinessAccount();
-                // Navigate to GarageTab
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (context) => HomePage()),
-                );
-              },
-              child: const Text(
-                'Юридическое лицо',
-                style: TextStyle(color: CupertinoColors.systemBlue),
-              ),
-            ),
-            CupertinoActionSheetAction(
-              onPressed: () {
-                Navigator.pop(context);
-                globalUserType = 3; // Set globalUserType to 3 for 'Индивидуальный предприниматель'
-                _switchToBusinessAccount();
-                // Navigate to GarageTab
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(builder: (context) => HomePage()),
-                );
-              },
-              child: const Text(
-                'Индивидуальный предприниматель',
-                style: TextStyle(color: CupertinoColors.systemBlue),
-              ),
-            ),
-          ],
-          cancelButton: CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text(
-              'Отмена',
-              style: TextStyle(color: CupertinoColors.systemRed),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  /// Logic for switching to private account
-  void _switchToPrivateAccount() {
-    // Add your logic for switching to a private account here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Переключено на личный аккаунт')),
-    );
-  }
-
-  /// Logic for switching to business account
-  void _switchToBusinessAccount() {
-    // Add your logic for switching to a business account here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Переключено на бизнес аккаунт')),
-    );
-  }
+  // /// Show account switch dialog or action sheet
+  // void _showSwitchAccountDialog(BuildContext context) {
+  //   showCupertinoModalPopup(
+  //     context: context,
+  //     builder: (BuildContext context) {
+  //       return CupertinoActionSheet(
+  //         title: const Text(
+  //           'Сменить аккаунт',
+  //           style: TextStyle(color: CupertinoColors.systemBlue),
+  //         ),
+  //         message: const Text(
+  //           'Выберите аккаунт для переключения:',
+  //           style: TextStyle(color: CupertinoColors.systemBlue),
+  //         ),
+  //         actions: [
+  //           CupertinoActionSheetAction(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               globalUserType = 1; // Set globalUserType to 1 for 'Физическое лицо'
+  //               _switchToPrivateAccount();
+  //             },
+  //             child: const Text(
+  //               'Физическое лицо',
+  //               style: TextStyle(color: CupertinoColors.systemBlue),
+  //             ),
+  //           ),
+  //           CupertinoActionSheetAction(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               globalUserType = 2; // Set globalUserType to 2 for 'Юридическое лицо'
+  //               _switchToBusinessAccount();
+  //               // Navigate to GarageTab
+  //               Navigator.push(
+  //                 context,
+  //                 CupertinoPageRoute(builder: (context) => HomePage()),
+  //               );
+  //             },
+  //             child: const Text(
+  //               'Юридическое лицо',
+  //               style: TextStyle(color: CupertinoColors.systemBlue),
+  //             ),
+  //           ),
+  //           CupertinoActionSheetAction(
+  //             onPressed: () {
+  //               Navigator.pop(context);
+  //               globalUserType = 3; // Set globalUserType to 3 for 'Индивидуальный предприниматель'
+  //               _switchToBusinessAccount();
+  //               // Navigate to GarageTab
+  //               Navigator.push(
+  //                 context,
+  //                 CupertinoPageRoute(builder: (context) => HomePage()),
+  //               );
+  //             },
+  //             child: const Text(
+  //               'Индивидуальный предприниматель',
+  //               style: TextStyle(color: CupertinoColors.systemBlue),
+  //             ),
+  //           ),
+  //         ],
+  //         cancelButton: CupertinoActionSheetAction(
+  //           onPressed: () {
+  //             Navigator.pop(context);
+  //           },
+  //           child: const Text(
+  //             'Отмена',
+  //             style: TextStyle(color: CupertinoColors.systemRed),
+  //           ),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
+  //
+  // /// Logic for switching to private account
+  // void _switchToPrivateAccount() {
+  //   // Add your logic for switching to a private account here
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Переключено на личный аккаунт')),
+  //   );
+  // }
+  //
+  // /// Logic for switching to business account
+  // void _switchToBusinessAccount() {
+  //   // Add your logic for switching to a business account here
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     const SnackBar(content: Text('Переключено на бизнес аккаунт')),
+  //   );
+  // }
 }

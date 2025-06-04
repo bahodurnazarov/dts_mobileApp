@@ -322,11 +322,16 @@ class _AddCarPageState extends State<AddCarPage> {
         await _addTransportToUser(transportId);
         _showSuccessAlert('Машина успешно добавлена!');
         if (mounted) Navigator.pop(context); // Go back after success
+      } else if (response.statusCode == 409) {
+        final responseData = json.decode(utf8.decode(response.bodyBytes));
+        // Conflict error - VIN code not unique\
+        _showErrorAlert('Конфликт: Машина с таким VIN уже существует.');
       } else {
         final responseData = json.decode(utf8.decode(response.bodyBytes));
         print(responseData['content']);
         _showErrorAlert(responseData['content'] ?? 'Ошибка при добавлении машины.');
       }
+
     } on TimeoutException {
       _showErrorAlert('Request timed out. Please check your internet connection or try again.');
     } catch (error) {
@@ -364,6 +369,8 @@ class _AddCarPageState extends State<AddCarPage> {
         final String accountType = await SharedPreferences.getInstance()
             .then((prefs) => prefs.getString('accountType') ?? 'private');
 
+        print(globalUserId);
+        print(transportId);
         if (accountType == 'private') {
           debugPrint("Private account selected");
           if (mounted) {
@@ -529,7 +536,7 @@ class _AddCarPageState extends State<AddCarPage> {
             style: const TextStyle(
               fontSize: 14, // Smaller label for consistency
               fontWeight: FontWeight.w500,
-              color: Colors.black54,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 8),
@@ -537,7 +544,10 @@ class _AddCarPageState extends State<AddCarPage> {
             items: options.map((option) {
               return DropdownMenuItem<String>(
                 value: option['id'],
-                child: Text(option['name'] ?? 'N/A'),
+                child: Text(
+                  option['name'] ?? 'N/A',
+                  style: const TextStyle(color: Colors.black),
+                ),
               );
             }).toList(),
             value: selectedValue,

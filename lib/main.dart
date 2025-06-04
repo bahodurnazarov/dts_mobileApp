@@ -2,19 +2,9 @@ import 'dart:ui';
 
 import 'package:dts/pages/auth/login_page.dart';
 import 'package:dts/pages/home_page.dart';
-import 'package:dts/pages/lessons/lessons_page.dart';
-import 'package:dts/pages/navigator/MapScreen.dart';
-import 'package:dts/pages/profile/profile_tab.dart';
-import 'package:dts/pages/profile/registerProfile/individualEntrepreneur_register.dart';
-import 'package:dts/pages/profile/registerProfile/individual_register.dart';
-import 'package:dts/pages/profile/registerProfile/legalEntity_register.dart';
 import 'package:flutter/material.dart';
-import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-
-import 'logging_service.dart';
-
 
 void main() async {
   // Initialize logging

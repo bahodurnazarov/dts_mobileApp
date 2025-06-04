@@ -42,12 +42,6 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             backgroundColor: CupertinoColors.white,
-            // border: Border(
-            //   bottom: BorderSide(
-            //     color: CupertinoColors.inactiveGray,
-            //     width: 0.5,
-            //   ),
-            // ),
           ),
         ),
       body: SafeArea(

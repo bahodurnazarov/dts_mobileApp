@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dts/pages/home_page.dart';
 import 'package:dts/pages/profile/profile_tab.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../config/config.dart';
 import '../../auth/businessPage.dart';
+import '../../auth/businessUserType.dart';
 import '../../auth/login_page.dart';
 import '../../auth/refresh_token.dart';
 
@@ -24,6 +26,7 @@ import '../../auth/refresh_token.dart';
 
   class _LegalRegistrationPageState extends State<LegalRegistrationPage> {
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController shortNameController = TextEditingController();
   final TextEditingController tinController = TextEditingController();
   final TextEditingController einController = TextEditingController();
   final TextEditingController kppController = TextEditingController();
@@ -50,7 +53,7 @@ import '../../auth/refresh_token.dart';
   List<Map<String, String>> cities = [];
   List<Map<String, String>> districtes = [];
   List<Map<String, String>> companyTypes = [];
-  List<Map<String, String>> activityStatuses = [];
+  //List<Map<String, String>> activityStatuses = [];
   List<Map<String, String>> properties = [];
 
   @override
@@ -65,7 +68,7 @@ import '../../auth/refresh_token.dart';
       cities = await _fetchDropdownOptions('$apiUrl/city/?page=0&size=3000&sort=id');
       districtes = await _fetchDropdownOptions('$apiUrl/district/?page=0&size=3000&sort=id');
       companyTypes = await _fetchDropdownOptions('$apiUrl/companytype/?page=0&size=3000&sort=id');
-      activityStatuses = await _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id');
+      //activityStatuses = await _fetchDropdownOptions('$apiUrl/activitystatus/?page=0&size=3000&sort=id');
       properties = await _fetchDropdownOptions('$apiUrl/property/');
 
       if (mounted) {
@@ -107,7 +110,7 @@ import '../../auth/refresh_token.dart';
         print(data);
         setState(() {
           nameController.text = data['fullName'] ?? "Unknown Name";
-          nameController.text = data['fullName'] ?? "Unknown Name";
+          shortNameController.text = data['shortName'] ?? "Unknown Name";
           countryController.text = "Таджикистан";
           einController.text = data['ein'] ?? "Unknown Name";
           _isNameFieldDisabled = true; // Disable the field after fetching
@@ -230,11 +233,11 @@ import '../../auth/refresh_token.dart';
                   keyboardType: TextInputType.number,
                   formatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) {
-                    if (value.length >= 7) _fetchNameFromInn(value);
+                    if (value.length >= 8) _fetchNameFromInn(value);
                   },
                 ),
                 _buildCupertinoTextField(
-                  controller: nameController,
+                  controller: shortNameController,
                   label: 'Название',
                   isRequired: true,
                   isDisabled: _isNameFieldDisabled,
@@ -262,47 +265,54 @@ import '../../auth/refresh_token.dart';
                   controller: officeController,
                   label: 'Дом/Кв',
                 ),
-              ]),
-
-              SizedBox(height: 24),
-
-              // Location Section
-              _buildCupertinoSection([
                 _buildCupertinoTextField(
                   controller: countryController,
                   label: 'Страна',
                   isDisabled: _isNameFieldDisabled,
                 ),
-                _buildCupertinoPicker(
+              ]),
+
+              SizedBox(height: 24),
+
+              // Location Section
+              _buildCupertinoSectionBorder([
+                SizedBox(height: 10), // Add spacing between pickers
+                _buildModernSearchablePicker(
                   label: 'Город',
                   value: selectedCity,
                   items: cities,
                   onChanged: (newValue) => setState(() => selectedCity = newValue),
                 ),
-                _buildCupertinoPicker(
+                SizedBox(height: 10), // Add spacing between pickers
+                _buildModernSearchablePicker(
                   label: 'Регион',
                   value: selectedDistrict,
                   items: districtes,
                   onChanged: (newValue) => setState(() => selectedDistrict = newValue),
                 ),
+                SizedBox(height: 10), // Add spacing between pickers
               ]),
 
               SizedBox(height: 24),
 
-              // Company Details Section
-              _buildCupertinoSection([
-                _buildCupertinoPicker(
+              //Company Details Section
+              _buildCupertinoSectionBorder([
+                SizedBox(height: 10), // Add spacing between pickers
+                _buildModernSearchablePicker(
                   label: 'Тип компании',
                   value: selectedCompanyType,
                   items: companyTypes,
                   onChanged: (newValue) => setState(() => selectedCompanyType = newValue),
                 ),
-                _buildCupertinoPicker(
+                SizedBox(height: 10), // Add spacing between pickers
+
+                _buildModernSearchablePicker(
                   label: 'Собственность',
                   value: selectedProperty,
                   items: properties,
                   onChanged: (newValue) => setState(() => selectedProperty = newValue),
                 ),
+                SizedBox(height: 10), // Add spacing between pickers
               ]),
 
               SizedBox(height: 32),
@@ -329,6 +339,23 @@ import '../../auth/refresh_token.dart';
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCupertinoSectionBorder(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: children
+            .map((child) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: child,
+        ))
+            .toList(), // Simply convert to list without adding dividers
       ),
     );
   }
@@ -417,129 +444,213 @@ import '../../auth/refresh_token.dart';
   }
 
 
-  Widget _buildCupertinoPicker({
+  Widget _buildModernSearchablePicker({
     required String label,
     required String? value,
     required List<Map<String, String>> items,
     required Function(String?) onChanged,
   }) {
-    return SizedBox(
-      height: 44,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal, // Ensures regular font
-                decoration: TextDecoration.none,
-                color: CupertinoColors.label,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            decoration: TextDecoration.none,
+            fontWeight: FontWeight.w500,
+            color: Colors.black.withOpacity(0.6),
+          ),
+        ),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _showModernPickerDialog(
+            context: context,
+            title: label,
+            items: items,
+            selectedValue: value,
+            onSelected: onChanged,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 1,
               ),
             ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (_) => Container(
-                    height: 250,
-                    color: Colors.black, // ✅ Light gray background instead of white
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey6,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: CupertinoColors.separator,
-                                width: 0.5,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CupertinoButton(
-                                child: Text(
-                                  'Отмена',
-                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                              ),
-                              CupertinoButton(
-                                child: Text(
-                                  'Готово',
-                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                              ),
-                            ],
-
-                          ),
-                        ),
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            backgroundColor: Colors.white,
-                            onSelectedItemChanged: (index) {
-                              onChanged(items[index]['id']);
-                            },
-                            children: items
-                                .map((item) => Center(
-                              child: Text(
-                                item['name'] ?? '',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black, // ✅ Force black text
-                                ),
-                              ),
-                            ))
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: DefaultTextStyle.merge(
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black, // Force black color
-                    decoration: TextDecoration.none,
-                  ),
+            child: Row(
+              children: [
+                Expanded(
                   child: Text(
                     value != null
                         ? items.firstWhere(
                           (item) => item['id'] == value,
-                      orElse: () => {'name': 'Выберите'},
+                      orElse: () => {'name': 'Select an option'},
                     )['name']!
-                        : 'Выберите',
+                        : 'Выберите вариант',
+                    style: TextStyle(
+                      decoration: TextDecoration.none,
+                      fontSize: 16,
+                      color: value != null ? Colors.black : Colors.grey.shade500,
+                    ),
                   ),
                 ),
-              ),
+                Icon(
+                  Icons.search,
+                  size: 20,
+                  color: Colors.grey.shade500,
+                ),
+              ],
             ),
           ),
-          Icon(
-            CupertinoIcons.forward,
-            size: 16,
-            color: CupertinoColors.black,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
+  void _showModernPickerDialog({
+    required BuildContext context,
+    required String title,
+    required List<Map<String, String>> items,
+    required String? selectedValue,
+    required Function(String?) onSelected,
+  }) {
+    String searchQuery = '';
+    List<Map<String, String>> filteredItems = List.from(items);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              margin: EdgeInsets.only(top: 40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  // Draggable handle
+                  Container(
+                    margin: EdgeInsets.only(top: 8, bottom: 4),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+
+                  // Header
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Search field
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Поиск...',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                          filteredItems = items.where((item) =>
+                          item['name']?.toLowerCase().contains(searchQuery.toLowerCase()) ?? false
+                          ).toList();
+                        });
+                      },
+                    ),
+                  ),
+
+                  // List of items
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return InkWell(
+                          onTap: () {
+                            onSelected(item['id']);
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade100,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item['name'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                if (item['id'] == selectedValue)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.blueAccent,
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Bottom safe area
+                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
 
   // Function to show success alert
@@ -555,7 +666,7 @@ import '../../auth/refresh_token.dart';
               Navigator.of(ctx).pop(); // Close the dialog
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(builder: (context) => ProfilePage()), // Navigate to GarageTab
+                MaterialPageRoute(builder: (context) => BusinessUserType('$apiUrl/company', 2)), // Navigate to GarageTab
                     (route) => false, // Remove all previous routes
               );
             },
@@ -595,24 +706,27 @@ import '../../auth/refresh_token.dart';
           );
         },
       );
-      return;
+      //return;
     }
 
     // Send request to the registration API
     final registrationData = {
       "name": nameController.text,
+      "shortName": shortNameController.text,
       "tin": tinController.text,
       "ein": einController.text,
       "kpp": kppController.text,
       "countryID": "59ea4b0f-549f-4070-8fd3-6c7d899ea709",
       "cityID": selectedCity,
       "districtID": selectedDistrict,
-      "office": officeController,
+      "office": officeController.text,
       "address": addressController.text,
       "companyTypeID": selectedCompanyType,
       "propertyID": selectedProperty,
     };
 
+    print("tet  ==== > ");
+    print(registrationData);
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 

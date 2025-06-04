@@ -63,7 +63,7 @@ class _BusinessUserType extends State<BusinessUserType> {
             setState(() {
               userInfo = content['content']; // Ensure userInfo is a map, not a string
               // Now, safely extract the user details
-              globalIndividualName = userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано';
+              globalIndividualName = (userInfo?['individualName'] ?? userInfo?['shortName'] ?? userInfo?['name'] ?? 'Имя не указано').toString().trim();
               globalTIN = userInfo?['tin'] ?? 'Не указано';
               isLoading = false;
             });
@@ -100,9 +100,6 @@ class _BusinessUserType extends State<BusinessUserType> {
           MaterialPageRoute(builder: (context) => LoginPage()),
         );
         return;
-        // await refreshAccessToken(context);
-        // return _checkUserType(url);
-        _showUnauthorizedError();
       } else {
         throw Exception('Failed to check user type. Status: ${response.statusCode}');
       }
@@ -262,7 +259,7 @@ class _BusinessUserType extends State<BusinessUserType> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    userInfo?['individualName'] ?? userInfo?['name'] ?? 'Имя не указано',
+                              (userInfo?['individualName'] ?? userInfo?['shortName'] ?? userInfo?['name'] ?? 'Имя не указано').toString().trim(),
                                     style: TextStyle(
                                       fontSize: 18,
                                       fontWeight: FontWeight.w600,

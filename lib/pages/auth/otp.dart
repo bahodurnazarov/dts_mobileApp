@@ -188,7 +188,7 @@ class _OTPScreenState extends State<OTPScreen> {
               ),
               SizedBox(height: 30),
               Text(
-                'Код был отправлен на ваш номер телефона: ${widget.login.replaceRange(2, widget.login.length - 3, '*' * (widget.login.length - 5))}',
+                'Код был отправлен на ваш номер телефона: ${widget.login.replaceRange(3, widget.login.length - 4, '*' * (widget.login.length - 9))}',
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   color: CupertinoColors.white,

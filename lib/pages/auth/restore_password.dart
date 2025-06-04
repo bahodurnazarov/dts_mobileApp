@@ -36,7 +36,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   void _validatePhone() {
     setState(() {
-      _isPhoneValid = _phoneController.text.length == 9;
+      _isPhoneValid = _phoneController.text.length == 16;
     });
   }
 
@@ -72,9 +72,11 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           _isOtpReceived = true;
         });
         _showCustomDialog('Код был отправлен на ваш номер телефона.');
+      } else if (response.statusCode == 404) {
+        // Handle 404 specifically
+        _showCustomDialog('Пользователь с таким номером телефона не найден');
       } else {
-        print('Error Response: ${response.body}');
-        _showCustomDialog(responseData['message'] ?? 'Произошла ошибка.');
+        _showCustomDialog(responseData['message'] ?? 'Неверный код.');
       }
     } catch (e) {
       _showCustomDialog('Произошла ошибка: $e');
@@ -116,11 +118,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             context,
             MaterialPageRoute(builder: (context) => LoginPage()),
           );
+        } else if (response.statusCode == 404) {
+          // Handle 404 specifically
+          _showCustomDialog('Пользователь с таким номером телефона не найден');
         } else {
           _showCustomDialog(responseData['message'] ?? 'Неверный код.');
         }
       } catch (e) {
-        _showCustomDialog('Произошла ошибка: $e');
+        // Handle network errors or JSON parsing errors
+        if (e is http.ClientException && e.message.contains('404')) {
+          _showCustomDialog('Пользователь с таким номером телефона не найден');
+        } else {
+          _showCustomDialog('Произошла ошибка: ${e.toString()}');
+        }
       } finally {
         setState(() {
           _isLoading = false; // Stop loading
@@ -210,13 +220,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        _buildTextField(
+                        _buildPhoneNumberField( // Changed to use the new phone number field
                           _phoneController,
                           'Номер телефона',
                           CupertinoIcons.phone,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                          ],
                         ),
                         SizedBox(height: 20),
                         Row(
@@ -228,6 +235,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 CupertinoIcons.lock,
                                 inputFormatters: [
                                   FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(6),
+                                  // 6-digit OTP
                                 ],
                               ),
                             ),
@@ -245,6 +254,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               child: Text(
                                 'Получить код',
                                 style: TextStyle(
+                                  color: Colors.white,
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -256,22 +266,20 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                         SizedBox(
                           width: double.infinity,
                           child: CupertinoButton(
-                            color: _isOTPValid ? Colors.blue : CupertinoColors
-                                .systemGrey,
-                            // Button color based on validity
+                            color: _isOTPValid
+                                ? Colors.blue
+                                : CupertinoColors.systemGrey,
                             onPressed: _isOTPValid && !_isLoading
                                 ? confirmOTP
                                 : null,
-                            // Enable button only if OTP is valid
                             borderRadius: BorderRadius.circular(25),
                             padding: EdgeInsets.symmetric(vertical: 16),
-                            // Adjusted padding
                             child: Text(
-                              'Подтвердить', // The text remains the same
+                              'Подтвердить',
                               style: TextStyle(
-                                fontSize: 18, // Font size
-                                fontWeight: FontWeight
-                                    .w600, // Adjusted font weight
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
@@ -288,11 +296,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildTextField(TextEditingController controller,
+// Specialized phone number field with (+992) prefix
+  Widget _buildPhoneNumberField(TextEditingController controller,
       String placeholder,
-      IconData icon, {
-        List<TextInputFormatter>? inputFormatters,
-      }) {
+      IconData icon,) {
+    // Initialize with prefix if empty
+    if (controller.text.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        controller.text = '(+992) ';
+        controller.selection =
+            TextSelection.collapsed(offset: controller.text.length);
+      });
+    }
+
     return CupertinoTextField(
       controller: controller,
       placeholder: placeholder,
@@ -316,11 +332,81 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ],
       ),
       style: TextStyle(fontSize: 16, color: Colors.black),
-      inputFormatters: inputFormatters ?? [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(9), // Limit to 9 digits
+      inputFormatters: [
+        _PhoneNumberInputFormatter(),
       ],
+      onChanged: (value) {
+        // Ensure prefix stays
+        if (!value.startsWith('(+992) ')) {
+          final digits = value.replaceAll(RegExp(r'[^\d]'), '');
+          final newValue = '(+992) ${digits.length > 3
+              ? digits.substring(3)
+              : ''}';
+          if (newValue != value) {
+            controller.value = TextEditingValue(
+              text: newValue,
+              selection: TextSelection.collapsed(offset: newValue.length),
+            );
+          }
+        }
+      },
     );
+  }
+
+// Original text field builder for other fields
+  Widget _buildTextField(TextEditingController controller,
+      String placeholder,
+      IconData icon, {
+        List<TextInputFormatter>? inputFormatters,
+      }) {
+    return CupertinoTextField(
+      controller: controller,
+      placeholder: placeholder,
+      placeholderStyle: TextStyle(color: CupertinoColors.systemGrey),
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+      prefix: Padding(
+        padding: const EdgeInsets.only(left: 8.0),
+        child: Icon(icon, color: CupertinoColors.systemGrey2),
+      ),
+      decoration: BoxDecoration(
+        color: CupertinoColors.lightBackgroundGray,
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.white10,
+            blurRadius: 8,
+            spreadRadius: 1,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      style: TextStyle(fontSize: 16, color: Colors.black),
+      inputFormatters: inputFormatters,
+    );
+  }
+}
+
+class _PhoneNumberInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue,
+      TextEditingValue newValue,
+      ) {
+    // Always keep the prefix
+    if (!newValue.text.startsWith('(+992) ')) {
+      return TextEditingValue(
+        text: '(+992) ',
+        selection: TextSelection.collapsed(offset: 7),
+      );
+    }
+
+    // Limit to 9 digits after prefix
+    final digits = newValue.text.replaceAll(RegExp(r'[^\d]'), '').substring(3);
+    if (digits.length >= 12) {
+      return oldValue;
+    }
+
+    return newValue;
   }
 }
 

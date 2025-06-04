@@ -1,12 +1,16 @@
 import 'dart:convert';
+import 'package:dts/pages/home_page.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../config/config.dart';
+import '../../auth/accountType.dart';
 import '../../auth/businessPage.dart';
 import '../../auth/login_page.dart';
+import '../../auth/privateAccountPage.dart';
+import '../profile_tab.dart';
 
 class IndividualPage extends StatefulWidget {
 
@@ -204,11 +208,7 @@ class _IndividualPageState extends State<IndividualPage> {
       final decodedBody = utf8.decode(response.bodyBytes);
 
       if (response.statusCode == 201) {
-        final data = jsonDecode(decodedBody);
-        print(data);
-        setState(() {
-          _responseMessage = 'Индивидуум успешно создан!';
-        });
+        _showSuccessAlert();
       } else {
         final data = jsonDecode(decodedBody);
         print(data);
@@ -228,6 +228,28 @@ class _IndividualPageState extends State<IndividualPage> {
     }
   }
 
+  void _showSuccessAlert() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Успех'),
+        content: Text('Вы успешно зарегистрировались!'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop(); // Close the dialog
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => PrivateAccountPage()), // Navigate to GarageTab
+                    (route) => false, // Remove all previous routes
+              );
+            },
+            child: Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
 
 
   @override
@@ -249,7 +271,7 @@ class _IndividualPageState extends State<IndividualPage> {
           onTap: () {
             Navigator.pushAndRemoveUntil(
               context,
-              CupertinoPageRoute(builder: (context) => BusinessPage()),
+              CupertinoPageRoute(builder: (context) => AccountTypeSelection()),
                   (Route<dynamic> route) => false,
             );
           },
@@ -285,7 +307,7 @@ class _IndividualPageState extends State<IndividualPage> {
                   formatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (value) {
                     // Add any INN validation logic if needed
-                      if (value.length >= 7) _fetchNameFromInn(value);
+                      if (value.length >= 8) _fetchNameFromInn(value);
                   },
                 ),
                 _buildCupertinoTextField(
@@ -320,28 +342,31 @@ class _IndividualPageState extends State<IndividualPage> {
                   keyboardType: TextInputType.phone,
                   formatters: [FilteringTextInputFormatter.digitsOnly],
                 ),
+                _buildCupertinoTextField(
+                  controller: countryController,
+                  label: 'Страна',
+                ),
               ]),
 
               SizedBox(height: 24),
 
               // Location Section
-              _buildCupertinoSection([
-                _buildCupertinoTextField(
-                  controller: countryController,
-                  label: 'Страна',
-                ),
-                _buildCupertinoPicker(
+              _buildCupertinoSectionBorder([
+                SizedBox(height: 10),
+                _buildModernSearchablePicker(
                   label: 'Город',
                   value: _selectedCityID,
                   items: _cityOptions,
                   onChanged: (newValue) => setState(() => _selectedCityID = newValue),
                 ),
-                _buildCupertinoPicker(
+                SizedBox(height: 10),
+                _buildModernSearchablePicker(
                   label: 'Регион',
                   value: _selectedDistrictID,
                   items: _districtOptions,
                   onChanged: (newValue) => setState(() => _selectedDistrictID = newValue),
                 ),
+                SizedBox(height: 10),
               ]),
 
               SizedBox(height: 32),
@@ -387,6 +412,22 @@ class _IndividualPageState extends State<IndividualPage> {
     );
   }
 
+  Widget _buildCupertinoSectionBorder(List<Widget> children) {
+    return Container(
+      decoration: BoxDecoration(
+        color: CupertinoColors.systemBackground,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        children: children
+            .map((child) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16),
+          child: child,
+        ))
+            .toList(), // Simply convert to list without adding dividers
+      ),
+    );
+  }
 
   Widget _buildCupertinoSection(List<Widget> children) {
     return Container(
@@ -472,126 +513,211 @@ class _IndividualPageState extends State<IndividualPage> {
   }
 
 
-  Widget _buildCupertinoPicker({
+  Widget _buildModernSearchablePicker({
     required String label,
     required String? value,
     required List<Map<String, String>> items,
     required Function(String?) onChanged,
   }) {
-    return SizedBox(
-      height: 44,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal, // Ensures regular font
-                decoration: TextDecoration.none,
-                color: CupertinoColors.label,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            decoration: TextDecoration.none,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.black.withOpacity(0.6),
+          ),
+        ),
+        SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => _showModernPickerDialog(
+            context: context,
+            title: label,
+            items: items,
+            selectedValue: value,
+            onSelected: onChanged,
+          ),
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Colors.grey.shade300,
+                width: 1,
               ),
             ),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: GestureDetector(
-              onTap: () {
-                showCupertinoModalPopup(
-                  context: context,
-                  builder: (_) => Container(
-                    height: 250,
-                    color: Colors.black, // ✅ Light gray background instead of white
-                    child: Column(
-                      children: [
-                        Container(
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: CupertinoColors.systemGrey6,
-                            border: Border(
-                              bottom: BorderSide(
-                                color: CupertinoColors.separator,
-                                width: 0.5,
-                              ),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              CupertinoButton(
-                                child: Text(
-                                  'Отмена',
-                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                              ),
-                              CupertinoButton(
-                                child: Text(
-                                  'Готово',
-                                  style: TextStyle(color: CupertinoColors.activeBlue), // Blue text
-                                ),
-                                onPressed: () => Navigator.pop(context),
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                              ),
-                            ],
-
-                          ),
-                        ),
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            backgroundColor: Colors.white,
-                            onSelectedItemChanged: (index) {
-                              onChanged(items[index]['id']);
-                            },
-                            children: items
-                                .map((item) => Center(
-                              child: Text(
-                                item['name'] ?? '',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.black, // ✅ Force black text
-                                ),
-                              ),
-                            ))
-                                .toList(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 12),
-                child: DefaultTextStyle.merge(
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.normal,
-                    color: Colors.black, // Force black color
-                    decoration: TextDecoration.none,
-                  ),
+            child: Row(
+              children: [
+                Expanded(
                   child: Text(
                     value != null
                         ? items.firstWhere(
                           (item) => item['id'] == value,
-                      orElse: () => {'name': 'Выберите'},
+                      orElse: () => {'name': 'Select an option'},
                     )['name']!
-                        : 'Выберите',
+                        : 'Выберите вариант',
+                    style: TextStyle(
+                      fontSize: 16,
+                      decoration: TextDecoration.none,
+                      color: value != null ? Colors.black : Colors.grey.shade500,
+                    ),
                   ),
                 ),
-              ),
+                Icon(
+                  Icons.search,
+                  size: 20,
+                  color: Colors.grey.shade500,
+                ),
+              ],
             ),
           ),
-          Icon(
-            CupertinoIcons.forward,
-            size: 16,
-            color: CupertinoColors.black,
-          ),
-        ],
-      ),
+        ),
+      ],
+    );
+  }
+
+  void _showModernPickerDialog({
+    required BuildContext context,
+    required String title,
+    required List<Map<String, String>> items,
+    required String? selectedValue,
+    required Function(String?) onSelected,
+  }) {
+    String searchQuery = '';
+    List<Map<String, String>> filteredItems = List.from(items);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              margin: EdgeInsets.only(top: 40),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: Column(
+                children: [
+                  // Draggable handle
+                  Container(
+                    margin: EdgeInsets.only(top: 8, bottom: 4),
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+
+                  // Header
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(24, 16, 24, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Spacer(),
+                        IconButton(
+                          icon: Icon(Icons.close),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Search field
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: TextField(
+                      autofocus: true,
+                      decoration: InputDecoration(
+                        hintText: 'Поиск...',
+                        prefixIcon: Icon(Icons.search, color: Colors.grey.shade500),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          searchQuery = value;
+                          filteredItems = items.where((item) =>
+                          item['name']?.toLowerCase().contains(searchQuery.toLowerCase()) ?? false
+                          ).toList();
+                        });
+                      },
+                    ),
+                  ),
+
+                  // List of items
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: filteredItems.length,
+                      itemBuilder: (context, index) {
+                        final item = filteredItems[index];
+                        return InkWell(
+                          onTap: () {
+                            onSelected(item['id']);
+                            Navigator.pop(context);
+                          },
+                          child: Container(
+                            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey.shade100,
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    item['name'] ?? '',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ),
+                                if (item['id'] == selectedValue)
+                                  Icon(
+                                    Icons.check_circle,
+                                    color: Colors.blueAccent,
+                                    size: 20,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+
+                  // Bottom safe area
+                  SizedBox(height: MediaQuery.of(context).viewInsets.bottom),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

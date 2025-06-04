@@ -98,7 +98,7 @@ class DirectoryTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: CupertinoColors.systemGroupedBackground,
+      backgroundColor: CupertinoColors.extraLightBackgroundGray,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(44),
         child: CupertinoNavigationBar(
@@ -110,13 +110,7 @@ class DirectoryTab extends StatelessWidget {
               color: Colors.black,
             ),
           ),
-          backgroundColor: CupertinoColors.systemGroupedBackground,
-          // border: Border(
-          //   bottom: BorderSide(
-          //     color: CupertinoColors.inactiveGray,
-          //     width: 0.5,
-          //   ),
-          // ),
+          backgroundColor: CupertinoColors.white, // lighter background
         ),
       ),
       body: SafeArea(

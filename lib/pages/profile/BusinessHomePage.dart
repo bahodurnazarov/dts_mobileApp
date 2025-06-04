@@ -23,26 +23,26 @@ class _BusinessHomePageState extends State<BusinessHomePage> {
           items: [
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.car),
-              label: 'Гараж',
+              // label: 'Гараж',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.creditcard),
-              label: 'Оплаты',
+              // label: 'Оплаты',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.map),
-              label: 'Навигатор',
+              // label: 'Навигатор',
             ),
             BottomNavigationBarItem(
               icon: Icon(CupertinoIcons.book),
-              label: 'Справочник',
+              // label: 'Справочник',
             ),
             BottomNavigationBarItem(
               icon: GestureDetector(
-                onLongPress: () => _showSwitchAccountDialog(context),
+                // onLongPress: () => _showSwitchAccountDialog(context),
                 child: Icon(CupertinoIcons.profile_circled),
               ),
-              label: 'Профиль',
+              // label: 'Профиль',
             ),
           ],
           activeColor: Colors.blue[600],

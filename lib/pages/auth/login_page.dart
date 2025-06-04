@@ -92,7 +92,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         final responseData = json.decode(response.body);
         print(responseData['message']);
-        _showErrorDialog(responseData['message'] ?? 'Invalid username or password.');
+        _showErrorDialog(responseData['message'] ?? 'Неверный логин или пароль.');
       }
     } catch (e) {
       print(e);
