@@ -68,6 +68,7 @@ class BusinessPage extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Color(0xFFF6F9FC), // Light blue background
+          iconTheme: IconThemeData(color: Colors.black), // This makes back arrow black
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
@@ -78,7 +79,11 @@ class BusinessPage extends StatelessWidget {
               );
             },
           ),
-          title: Text('Выберите ваш тип'),
+          title: Text(
+            'Выберите ваш тип',
+            style: TextStyle(color: Colors.black), // Black text color
+          ),
+          elevation: 0, // Optional: removes shadow for flat design
         ),
         body: Container(
           decoration: BoxDecoration(

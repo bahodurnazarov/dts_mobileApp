@@ -11,13 +11,11 @@ class _PaymentsTabState extends State<PaymentsTab> {
   bool _darkMode = false; // Dark mode flag
 
   final List<Map<String, dynamic>> paidTransactions = [
-    {'title': 'Штрафы', 'amount': 500.0, 'date': '20.11.2024'},
-    {'title': 'Страховка', 'amount': 120.0, 'date': '15.11.2024'},
+
   ];
 
   final List<Map<String, dynamic>> pendingTransactions = [
-    {'title': 'Технический осмотр', 'amount': 300.0, 'dueDate': '25.11.2024'},
-    {'title': 'Штрафы', 'amount': 800.0, 'dueDate': '28.11.2024'},
+
   ];
 
   @override

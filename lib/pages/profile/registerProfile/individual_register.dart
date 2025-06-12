@@ -314,6 +314,7 @@ class _IndividualPageState extends State<IndividualPage> {
                   controller: nameController,
                   label: 'ФИО',
                   isRequired: true,
+                  isDisabled: _isNameFieldDisabled,
                 ),
               ]),
 
@@ -345,6 +346,7 @@ class _IndividualPageState extends State<IndividualPage> {
                 _buildCupertinoTextField(
                   controller: countryController,
                   label: 'Страна',
+                  isDisabled: _isNameFieldDisabled,
                 ),
               ]),
 

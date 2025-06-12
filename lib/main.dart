@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:dts/pages/auth/login_page.dart';
 import 'package:dts/pages/home_page.dart';
+import 'package:dts/pages/profile/registerProfile/individual_register.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -73,10 +74,10 @@ class _HomeWrapperState extends State<HomeWrapper> {
 
     // If token is null or empty, navigate to LoginPage
     if (token == null || token!.isEmpty) {
-      return LoginPage();
+      return IndividualPage();
     }
 
     // Otherwise, navigate to HomePage
-    return HomePage();
+    return IndividualPage();
   }
 }

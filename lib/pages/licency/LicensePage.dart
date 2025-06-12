@@ -37,13 +37,13 @@ class _LicensePageState extends State<LicensePage> {
         await _fetchLicenseData();
       } else {
         setState(() {
-          errorMessage = "Token not found.";
+          errorMessage = "Authentication required. Please login.";
           isLoading = false;
         });
       }
     } catch (e) {
       setState(() {
-        errorMessage = "Error retrieving token: $e";
+        errorMessage = "Error retrieving token: ${e.toString()}";
         isLoading = false;
       });
     }
@@ -60,7 +60,7 @@ class _LicensePageState extends State<LicensePage> {
 
     if (token == null || token.isEmpty) {
       setState(() {
-        errorMessage = 'Token not found';
+        errorMessage = 'Authentication token not found';
         isLoading = false;
       });
       return;
@@ -75,12 +75,9 @@ class _LicensePageState extends State<LicensePage> {
           'accept': 'application/json',
         },
       );
-      //final decodedBody = utf8.decode(response.bodyBytes);
 
       if (response.statusCode == 200) {
-        // Properly decode the UTF-8 response
-        final data = json.decode(utf8.decode( response.bodyBytes));
-        // Convert the List<dynamic> to List<Map<String, dynamic>>
+        final data = json.decode(utf8.decode(response.bodyBytes));
         final List<dynamic> content = data['content'];
         final List<Map<String, dynamic>> convertedData = content.map((item) {
           return Map<String, dynamic>.from(item);
@@ -98,86 +95,204 @@ class _LicensePageState extends State<LicensePage> {
       }
     } catch (e) {
       setState(() {
-        print(e);
-        errorMessage = 'Network error: $e';
+        errorMessage = 'Network error: ${e.toString()}';
         isLoading = false;
       });
     }
   }
 
   Widget _buildLicenseItem(Map<String, dynamic> license) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: CupertinoColors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: CupertinoColors.systemGrey.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Material(
+          color: Colors.transparent,
+          child: ExpansionTile(
+            tilePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            title: Text(
               license['title'] ?? 'No Title',
               style: const TextStyle(
                 fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w600,
+                color: CupertinoColors.label,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              license['text'] ?? 'No Description',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            if (license['applicationDocumentTypes'] != null &&
-                (license['applicationDocumentTypes'] as List).isNotEmpty)
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Required Documents:',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  ...(license['applicationDocumentTypes'] as List).map((doc) {
-                    final docType = doc['documentType'] as Map<String, dynamic>?;
-                    return Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        '- ${docType?['name'] ?? 'Unknown Document'} (Step ${doc['step']}, Importance: ${doc['documentImportance']})',
+            subtitle: license['text'] != null
+                ? Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                license['text']!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                ),
+              ),
+            )
+                : null,
+            children: [
+              if (license['applicationDocumentTypes'] != null &&
+                  (license['applicationDocumentTypes'] as List).isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Required Documents:',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: CupertinoColors.label,
+                        ),
                       ),
-                    );
-                  }).toList(),
-                ],
-              ),
-          ],
+                      const SizedBox(height: 8),
+                      ...(license['applicationDocumentTypes'] as List).map((doc) {
+                        final docType = doc['documentType'] as Map<String, dynamic>?;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.only(top: 2, right: 8),
+                                child: Icon(
+                                  Icons.check_circle_outline,
+                                  size: 16,
+                                  color: CupertinoColors.activeGreen,
+                                ),
+                              ),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      docType?['name'] ?? 'Unknown Document',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Step ${doc['step']} • Importance: ${doc['documentImportance']}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: CupertinoColors.secondaryLabel.resolveFrom(context),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildLicenseList() {
-    return ListView.builder(
-      itemCount: licenseData.length,
-      itemBuilder: (context, index) {
-        return _buildLicenseItem(licenseData[index]);
-      },
+    return RefreshIndicator(
+      onRefresh: _fetchLicenseData,
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.all(16),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) => _buildLicenseItem(licenseData[index]),
+                childCount: licenseData.length,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 48,
+            color: CupertinoColors.systemRed.resolveFrom(context),
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              errorMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+                color: CupertinoColors.label.resolveFrom(context),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          CupertinoButton(
+            onPressed: _fetchLicenseData,
+            child: const Text('Try Again'),
+          ),
+        ],
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text("License Applications"),
+      navigationBar: CupertinoNavigationBar(
+        middle: const Text("Licenses"),
+        trailing: CupertinoButton(
+          padding: EdgeInsets.zero,
+          onPressed: _fetchLicenseData,
+          child: const Icon(CupertinoIcons.refresh),
+        ),
       ),
       child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: isLoading
-              ? const Center(child: CupertinoActivityIndicator())
-              : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage))
-              : _buildLicenseList(),
-        ),
+        child: isLoading
+            ? const Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CupertinoActivityIndicator(radius: 16),
+              SizedBox(height: 16),
+              Text(
+                'Loading licenses...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: CupertinoColors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+        )
+            : errorMessage.isNotEmpty
+            ? _buildErrorState()
+            : _buildLicenseList(),
       ),
     );
   }
